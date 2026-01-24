@@ -1,12 +1,17 @@
 Package: fuzzystring
 Title: Fast Fuzzy String Joins for Data Frames
-Version: 0.0.0.9001
+Version: 0.0.1
 Authors@R: 
-    person(given = "Paul E.",
+    c(person(given = "Paul E.",
            family = "Santos Andrade",
            role = c("aut", "cre"),
            email = "paulefrens@gmail.com",
-           comment = c(ORCID = "0000-0002-6635-0375"))
+           comment = c(ORCID = "0000-0002-6635-0375")),
+           person(given = "David",
+             family = "Robinson",
+             role = "ctb",
+             email = "admiral.david@gmail.com",
+             comment = "aut of fuzzyjoin"))
 Description: Perform fuzzy joins on data frames using approximate string matching.
     Implements all standard join types (inner, left, right, full, semi, anti) with
     support for multiple string distance metrics from the 'stringdist' package
