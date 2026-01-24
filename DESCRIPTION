@@ -1,16 +1,20 @@
 Package: fuzzystring
-Title: Fuzzy String Joins for Data Frames
-Version: 0.0.0.9000
+Title: Fast Fuzzy String Joins for Data Frames
+Version: 0.0.0.9001
 Authors@R: 
-        person(given = "Paul E.",
+    person(given = "Paul E.",
            family = "Santos Andrade",
            role = c("aut", "cre"),
            email = "paulefrens@gmail.com",
            comment = c(ORCID = "0000-0002-6635-0375"))
-Description: Join data frames using approximate string matching.
-    Provides inner/left/right/full/semi/anti joins powered by string
-    distance metrics from 'stringdist', with a fast data.table backend
-    and optional distance columns in the output.
+Description: Perform fuzzy joins on data frames using approximate string matching.
+    Implements all standard join types (inner, left, right, full, semi, anti) with
+    support for multiple string distance metrics from the 'stringdist' package
+    including Levenshtein, Damerau-Levenshtein, Jaro-Winkler, and Soundex. Features
+    a high-performance 'data.table' backend with C++ row binding for efficient 
+    processing of large datasets. Ideal for matching misspellings, inconsistent 
+    labels, messy user input, or reconciling datasets with slight variations in 
+    identifiers. Optionally returns distance metrics alongside matched records.
 License: MIT + file LICENSE
 Depends:
     R (>= 4.1)
@@ -22,6 +26,7 @@ LinkingTo:
     Rcpp
 Suggests:
     ggplot2,
+    qdapDictionaries,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Encoding: UTF-8
