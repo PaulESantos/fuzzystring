@@ -10,14 +10,14 @@
 Source:
 [`DESCRIPTION`](https://github.com/PaulESantos/fuzzystring/blob/main/DESCRIPTION)
 
-Santos Andrade P (2026). *fuzzystring: Fuzzy String Joins for Data
-Frames*. R package version 0.0.0.9000,
+Santos Andrade P (2026). *fuzzystring: Fast Fuzzy String Joins for Data
+Frames*. R package version 0.0.0.9001,
 <https://github.com/PaulESantos/fuzzystring>.
 
     @Manual{,
-      title = {fuzzystring: Fuzzy String Joins for Data Frames},
+      title = {fuzzystring: Fast Fuzzy String Joins for Data Frames},
       author = {Paul E. {Santos Andrade}},
       year = {2026},
-      note = {R package version 0.0.0.9000},
+      note = {R package version 0.0.0.9001},
       url = {https://github.com/PaulESantos/fuzzystring},
     }
