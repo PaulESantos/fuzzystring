@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>What the Package Does (One Line, Title Case) • fuzzystring</title>
+<title>Fuzzy String Joins for Data Frames • fuzzystring</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="What the Package Does (One Line, Title Case)">
-<meta name="description" content="What the package does (one paragraph).">
-<meta property="og:description" content="What the package does (one paragraph).">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Fuzzy String Joins for Data Frames">
+<meta name="description" content="Join data frames using approximate string matching. Provides inner/left/right/full/semi/anti joins powered by string distance metrics from stringdist, with a fast data.table backend and optional distance columns in the output.">
+<meta property="og:description" content="Join data frames using approximate string matching. Provides inner/left/right/full/semi/anti joins powered by string distance metrics from stringdist, with a fast data.table backend and optional distance columns in the output.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -45,8 +45,287 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9">
-What the package does (one paragraph).
+  <main id="main" class="col-md-9"><div class="section level1">
+<div class="page-header"><h1 id="fuzzystring">fuzzystring<a class="anchor" aria-label="anchor" href="#fuzzystring"></a>
+</h1></div>
+<!-- badges: start -->
+
+<p>fuzzystring provides fast, data.table-backed fuzzy joins for data frames using string distance metrics from stringdist. Use it when you need to merge rows that are “close enough” (misspellings, inconsistent labels, user input, or messy IDs).</p>
+<p>Key features:</p>
+<ul>
+<li>inner/left/right/full/semi/anti fuzzy joins</li>
+<li>string distance methods from stringdist</li>
+<li>optional distance column in the result</li>
+<li>C++ row binding for performance on large joins</li>
+</ul>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Development version from GitHub</span></span>
+<span><span class="co"># Using pak (recommended)</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"PaulESantos/fuzzystring"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Or using remotes</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"PaulESantos/fuzzystring"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+</h2>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PaulESantos/fuzzystring" class="external-link">fuzzystring</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Idea"</span>, <span class="st">"Premiom"</span>, <span class="st">"Very Good"</span><span class="op">)</span>, id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>approx_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Ideal"</span>, <span class="st">"Premium"</span>, <span class="st">"VeryGood"</span><span class="op">)</span>, grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span></span>
+<span>  <span class="va">x</span>, <span class="va">y</span>,</span>
+<span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>,</span>
+<span>  max_dist <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  distance_col <span class="op">=</span> <span class="st">"distance"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="example-of-fuzzystring_inner_join-correcting-misspellings-against-a-dictionary">Example of <code>fuzzystring_inner_join</code>: Correcting misspellings against a dictionary<a class="anchor" aria-label="anchor" href="#example-of-fuzzystring_inner_join-correcting-misspellings-against-a-dictionary"></a>
+</h3>
+<p>Often you find yourself with a set of words that you want to combine with a “dictionary”- it could be a literal dictionary (as in this case) or a domain-specific category system. But you want to allow for small differences in spelling or punctuation.</p>
+<p>The package includes a set of common misspellings (<a href="https://en.wikipedia.org/wiki/Wikipedia:Lists_of_common_misspellings/For_machines" class="external-link">Wikipedia list</a>):</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──</span></span>
+<span><span class="co">#&gt; ✔ dplyr     1.1.4     ✔ readr     2.1.6</span></span>
+<span><span class="co">#&gt; ✔ forcats   1.0.1     ✔ stringr   1.6.0</span></span>
+<span><span class="co">#&gt; ✔ ggplot2   4.0.1     ✔ tibble    3.3.1</span></span>
+<span><span class="co">#&gt; ✔ lubridate 1.9.4     ✔ tidyr     1.3.2</span></span>
+<span><span class="co">#&gt; ✔ purrr     1.2.1     </span></span>
+<span><span class="co">#&gt; ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──</span></span>
+<span><span class="co">#&gt; ✖ dplyr::filter() masks stats::filter()</span></span>
+<span><span class="co">#&gt; ✖ dplyr::lag()    masks stats::lag()</span></span>
+<span><span class="co">#&gt; ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PaulESantos/fuzzystring" class="external-link">fuzzystring</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">misspellings</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">misspellings</span></span>
+<span><span class="co">#&gt; # A tibble: 4,505 × 2</span></span>
+<span><span class="co">#&gt;    misspelling correct   </span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;       &lt;chr&gt;     </span></span>
+<span><span class="co">#&gt;  1 abandonned  abandoned </span></span>
+<span><span class="co">#&gt;  2 aberation   aberration</span></span>
+<span><span class="co">#&gt;  3 abilties    abilities </span></span>
+<span><span class="co">#&gt;  4 abilty      ability   </span></span>
+<span><span class="co">#&gt;  5 abondon     abandon   </span></span>
+<span><span class="co">#&gt;  6 abbout      about     </span></span>
+<span><span class="co">#&gt;  7 abotu       about     </span></span>
+<span><span class="co">#&gt;  8 abouta      about a   </span></span>
+<span><span class="co">#&gt;  9 aboutit     about it  </span></span>
+<span><span class="co">#&gt; 10 aboutthe    about the </span></span>
+<span><span class="co">#&gt; # ℹ 4,495 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># use the dictionary of words from the qdapDictionaries package,</span></span>
+<span><span class="co"># which is based on the Nettalk corpus.</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://trinker.github.com/qdapDictionaries/" class="external-link">qdapDictionaries</a></span><span class="op">)</span></span>
+<span><span class="va">words</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu">as_tibble</span><span class="op">(</span><span class="va">DICTIONARY</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">words</span></span>
+<span><span class="co">#&gt; # A tibble: 20,137 × 2</span></span>
+<span><span class="co">#&gt;    word  syllables</span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;     &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1 hm            1</span></span>
+<span><span class="co">#&gt;  2 hmm           1</span></span>
+<span><span class="co">#&gt;  3 hmmm          1</span></span>
+<span><span class="co">#&gt;  4 hmph          1</span></span>
+<span><span class="co">#&gt;  5 mmhmm         2</span></span>
+<span><span class="co">#&gt;  6 mmhm          2</span></span>
+<span><span class="co">#&gt;  7 mm            1</span></span>
+<span><span class="co">#&gt;  8 mmm           1</span></span>
+<span><span class="co">#&gt;  9 mmmm          1</span></span>
+<span><span class="co">#&gt; 10 pff           1</span></span>
+<span><span class="co">#&gt; # ℹ 20,127 more rows</span></span></code></pre></div>
+<p>As an example, we’ll pick 1000 of these words (you could try it on all of them though), and use <code>fuzzystring_inner_join</code> to join them against our dictionary.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2016</span><span class="op">)</span></span>
+<span><span class="va">sub_misspellings</span> <span class="op">&lt;-</span> <span class="va">misspellings</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">sample_n</span><span class="op">(</span><span class="fl">1000</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">joined</span> <span class="op">&lt;-</span> <span class="va">sub_misspellings</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span><span class="va">words</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>misspelling <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p>By default, <code>fuzzystring_inner_join</code> uses optimal string alignment (Damerau–Levenshtein distance), and we’re setting a maximum distance of 1 for a join. Notice that they’ve been joined in cases where <code>misspelling</code> is close to (but not equal to) <code>word</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">joined</span></span>
+<span><span class="co">#&gt;      misspelling    correct       word syllables</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;     &lt;char&gt;     &lt;char&gt;     &lt;num&gt;</span></span>
+<span><span class="co">#&gt;   1:   cyclinder   cylinder   cylinder         3</span></span>
+<span><span class="co">#&gt;   2: beastiality bestiality bestiality         5</span></span>
+<span><span class="co">#&gt;   3:    affilate  affiliate  affiliate         4</span></span>
+<span><span class="co">#&gt;   4:     supress   suppress   suppress         2</span></span>
+<span><span class="co">#&gt;   5:    intevene  intervene  intervene         3</span></span>
+<span><span class="co">#&gt;  ---                                            </span></span>
+<span><span class="co">#&gt; 756:        fiel      field       file         1</span></span>
+<span><span class="co">#&gt; 757:        fiel      field       fill         1</span></span>
+<span><span class="co">#&gt; 758:        fiel      field       fuel         2</span></span>
+<span><span class="co">#&gt; 759:        fiel      field       riel         2</span></span>
+<span><span class="co">#&gt; 760:    aparment  apartment  apartment         3</span></span></code></pre></div>
+<div class="section level4">
+<h4 id="classification-accuracy">Classification accuracy<a class="anchor" aria-label="anchor" href="#classification-accuracy"></a>
+</h4>
+<p>Note that there are some redundancies; words that could be multiple items in the dictionary. These end up with one row per “guess” in the output. How many words did we classify?</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">joined</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">count</span><span class="op">(</span><span class="va">misspelling</span>, <span class="va">correct</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      misspelling    correct     n</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;     &lt;char&gt; &lt;int&gt;</span></span>
+<span><span class="co">#&gt;   1:      abilty    ability     1</span></span>
+<span><span class="co">#&gt;   2:   accademic   academic     1</span></span>
+<span><span class="co">#&gt;   3:    accademy    academy     1</span></span>
+<span><span class="co">#&gt;   4:   accension  accession     2</span></span>
+<span><span class="co">#&gt;   5:  acceptence acceptance     1</span></span>
+<span><span class="co">#&gt;  ---                             </span></span>
+<span><span class="co">#&gt; 458:        wnat       want     3</span></span>
+<span><span class="co">#&gt; 459:  wonderfull  wonderful     1</span></span>
+<span><span class="co">#&gt; 460:       wroet      wrote     1</span></span>
+<span><span class="co">#&gt; 461:     wupport    support     1</span></span>
+<span><span class="co">#&gt; 462:      zeebra      zebra     1</span></span></code></pre></div>
+<p>So we found a match in the dictionary for about half of the misspellings. In how many of the ones we classified did we get at least one of our guesses right?</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">which_correct</span> <span class="op">&lt;-</span> <span class="va">joined</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">misspelling</span>, <span class="va">correct</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">summarize</span><span class="op">(</span>guesses <span class="op">=</span> <span class="fu">n</span><span class="op">(</span><span class="op">)</span>, one_correct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">correct</span> <span class="op">==</span> <span class="va">word</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; `summarise()` has grouped output by 'misspelling'. You can override using the</span></span>
+<span><span class="co">#&gt; `.groups` argument.</span></span>
+<span></span>
+<span><span class="va">which_correct</span></span>
+<span><span class="co">#&gt; # A tibble: 462 × 4</span></span>
+<span><span class="co">#&gt; # Groups:   misspelling [453]</span></span>
+<span><span class="co">#&gt;    misspelling correct     guesses one_correct</span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;       &lt;chr&gt;         &lt;int&gt; &lt;lgl&gt;      </span></span>
+<span><span class="co">#&gt;  1 abilty      ability           1 TRUE       </span></span>
+<span><span class="co">#&gt;  2 accademic   academic          1 TRUE       </span></span>
+<span><span class="co">#&gt;  3 accademy    academy           1 TRUE       </span></span>
+<span><span class="co">#&gt;  4 accension   accession         2 TRUE       </span></span>
+<span><span class="co">#&gt;  5 acceptence  acceptance        1 TRUE       </span></span>
+<span><span class="co">#&gt;  6 acedemic    academic          1 TRUE       </span></span>
+<span><span class="co">#&gt;  7 achive      achieve           4 TRUE       </span></span>
+<span><span class="co">#&gt;  8 acommodate  accommodate       1 TRUE       </span></span>
+<span><span class="co">#&gt;  9 acuracy     accuracy          1 TRUE       </span></span>
+<span><span class="co">#&gt; 10 addmission  admission         1 TRUE       </span></span>
+<span><span class="co">#&gt; # ℹ 452 more rows</span></span>
+<span></span>
+<span><span class="co"># percentage of guesses getting at least one right</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">which_correct</span><span class="op">$</span><span class="va">one_correct</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.8246753</span></span>
+<span></span>
+<span><span class="co"># number uniquely correct (out of the original 1000)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">which_correct</span><span class="op">$</span><span class="va">guesses</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span> <span class="va">which_correct</span><span class="op">$</span><span class="va">one_correct</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 290</span></span></code></pre></div>
+<p>Not bad.</p>
+</div>
+<div class="section level4">
+<h4 id="reporting-distance-in-the-joined-output">Reporting distance in the joined output<a class="anchor" aria-label="anchor" href="#reporting-distance-in-the-joined-output"></a>
+</h4>
+<p>If you wanted to include the distance as a column in your output, you can use the <code>distance_col</code> argument. For example, we may be interested in how many words were <em>two</em> letters apart.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">joined_dists</span> <span class="op">&lt;-</span> <span class="va">sub_misspellings</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span><span class="va">words</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>misspelling <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>                        distance_col <span class="op">=</span> <span class="st">"distance"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">joined_dists</span></span>
+<span><span class="co">#&gt;       misspelling    correct       word syllables distance</span></span>
+<span><span class="co">#&gt;            &lt;char&gt;     &lt;char&gt;     &lt;char&gt;     &lt;num&gt;    &lt;num&gt;</span></span>
+<span><span class="co">#&gt;    1:   cyclinder   cylinder   cylinder         3        1</span></span>
+<span><span class="co">#&gt;    2: beastiality bestiality bestiality         5        1</span></span>
+<span><span class="co">#&gt;    3:    affilate  affiliate  affiliate         4        1</span></span>
+<span><span class="co">#&gt;    4:    comitted  committed  committee         3        2</span></span>
+<span><span class="co">#&gt;    5:    acquited  acquitted    acquire         2        2</span></span>
+<span><span class="co">#&gt;   ---                                                     </span></span>
+<span><span class="co">#&gt; 8431:    aparment  apartment   apparent         3        2</span></span>
+<span><span class="co">#&gt; 8432:    aparment  apartment   averment         3        2</span></span>
+<span><span class="co">#&gt; 8433:    aparment  apartment    garment         2        2</span></span>
+<span><span class="co">#&gt; 8434:    aparment  apartment     parent         2        2</span></span>
+<span><span class="co">#&gt; 8435:    aparment  apartment    payment         2        2</span></span></code></pre></div>
+<p>Note the extra <code>distance</code> column, which in this case will always be less than or equal to 2. We could then pick the closest match for each, and examine how many of our closest matches were 1 or 2 away:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">closest</span> <span class="op">&lt;-</span> <span class="va">joined_dists</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">misspelling</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">top_n</span><span class="op">(</span><span class="fl">1</span>, <span class="fu">desc</span><span class="op">(</span><span class="va">distance</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">closest</span></span>
+<span><span class="co">#&gt; # A tibble: 1,336 × 5</span></span>
+<span><span class="co">#&gt;    misspelling   correct     word          syllables distance</span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;         &lt;chr&gt;       &lt;chr&gt;             &lt;dbl&gt;    &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1 cyclinder     cylinder    cylinder              3        1</span></span>
+<span><span class="co">#&gt;  2 beastiality   bestiality  bestiality            5        1</span></span>
+<span><span class="co">#&gt;  3 affilate      affiliate   affiliate             4        1</span></span>
+<span><span class="co">#&gt;  4 comitted      committed   committee             3        2</span></span>
+<span><span class="co">#&gt;  5 acquited      acquitted   acquire               2        2</span></span>
+<span><span class="co">#&gt;  6 acquited      acquitted   acquit                2        2</span></span>
+<span><span class="co">#&gt;  7 decompositing decomposing decomposition         5        2</span></span>
+<span><span class="co">#&gt;  8 decieved      deceived    deceive               2        2</span></span>
+<span><span class="co">#&gt;  9 asociated     associated  associate             4        2</span></span>
+<span><span class="co">#&gt; 10 supress       suppress    suppress              2        1</span></span>
+<span><span class="co">#&gt; # ℹ 1,326 more rows</span></span>
+<span></span>
+<span><span class="va">closest</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">count</span><span class="op">(</span><span class="va">distance</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 3 × 2</span></span>
+<span><span class="co">#&gt;   distance     n</span></span>
+<span><span class="co">#&gt;      &lt;dbl&gt; &lt;int&gt;</span></span>
+<span><span class="co">#&gt; 1        0     3</span></span>
+<span><span class="co">#&gt; 2        1   739</span></span>
+<span><span class="co">#&gt; 3        2   594</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="other-joining-functions">Other joining functions<a class="anchor" aria-label="anchor" href="#other-joining-functions"></a>
+</h4>
+<p>Note that <code>fuzzystring_inner_join</code> is not the only function we can use. If we’re interested in including the words that we <em>couldn’t</em> classify, we could have use <code>fuzzystring_left_join</code>:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">left_joined</span> <span class="op">&lt;-</span> <span class="va">sub_misspellings</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_left_join</a></span><span class="op">(</span><span class="va">words</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>misspelling <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">left_joined</span></span>
+<span></span>
+<span><span class="va">left_joined</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">word</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        misspelling       correct   word syllables</span></span>
+<span><span class="co">#&gt;             &lt;char&gt;        &lt;char&gt; &lt;char&gt;     &lt;num&gt;</span></span>
+<span><span class="co">#&gt;   1:     Sanhedrim     Sanhedrin   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt;   2: consicousness consciousness   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt;   3:    repubicans   republicans   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt;   4:      comitted     committed   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt;   5:     emmisions     emissions   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt;  ---                                             </span></span>
+<span><span class="co">#&gt; 534:   accquainted    acquainted   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt; 535:   ubiquitious    ubiquitous   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt; 536:       Januray       January   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt; 537:   aggaravates    aggravates   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt; 538:       wayword       wayward   &lt;NA&gt;        NA</span></span></code></pre></div>
+<p>(To get <em>just</em> the ones without matches immediately, we could have used <code>fuzzystring_anti_join</code>). If we increase our distance threshold, we’ll increase the fraction with a correct guess, but also get more false positive guesses:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">left_joined2</span> <span class="op">&lt;-</span> <span class="va">sub_misspellings</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_left_join</a></span><span class="op">(</span><span class="va">words</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>misspelling <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">left_joined2</span></span>
+<span></span>
+<span><span class="va">left_joined2</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">word</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        misspelling       correct   word syllables</span></span>
+<span><span class="co">#&gt;             &lt;char&gt;        &lt;char&gt; &lt;char&gt;     &lt;num&gt;</span></span>
+<span><span class="co">#&gt;   1:     Sanhedrim     Sanhedrin   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt;   2: consicousness consciousness   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt;   3:    repubicans   republicans   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt;   4:     emmisions     emissions   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt;   5:   commonweath  commonwealth   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt;  ---                                             </span></span>
+<span><span class="co">#&gt; 282:    surounding   surrounding   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt; 283:     stainlees     stainless   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt; 284:   accquainted    acquainted   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt; 285:   ubiquitious    ubiquitous   &lt;NA&gt;        NA</span></span>
+<span><span class="co">#&gt; 286:       wayword       wayward   &lt;NA&gt;        NA</span></span></code></pre></div>
+<p>Most of the missing words here simply aren’t in our dictionary.</p>
+<p>You can try other distance thresholds, other dictionaries, and other distance metrics (see [stringdist-metrics] for more). This function is especially useful on a domain-specific dataset, such as free-form survey input that is likely to be close to one of a handful of responses.</p>
+</div>
+</div>
+</div>
+</div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
@@ -86,7 +365,15 @@ What the package does (one paragraph).
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
+<li><a href="https://CRAN.R-project.org/package=fuzzystring" class="external-link"><img src="https://www.r-pkg.org/badges/version/fuzzystring" alt="CRAN status"></a></li>
+<li><a href="https://github.com/PaulESantos/fuzzystring/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/PaulESantos/fuzzystring/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://app.codecov.io/gh/PaulESantos/fuzzystring" class="external-link"><img src="https://codecov.io/gh/PaulESantos/fuzzystring/graph/badge.svg" alt="Codecov test coverage"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>
