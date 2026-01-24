@@ -301,14 +301,3 @@ fstring_inner_join(
 **fuzzystring** builds on these great packages to provide a fast, data.table-native implementation with C++ optimization.
 
 
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](.github/CONTRIBUTING.md) for guidelines.
-
-## Code of Conduct
-
-Please note that this project is released with a [Contributor Code of Conduct](.github/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
-
-## License
-
-MIT © Paul E. Santos Andrade
