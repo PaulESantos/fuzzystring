@@ -298,6 +298,9 @@ fstring_inner_join(
 - **[stringdist](https://github.com/markvanderloo/stringdist)**: String distance metrics
 - **[data.table](https://rdatatable.gitlab.io/data.table/)**: High-performance data manipulation
 
-**fuzzystring** builds on these great packages to provide a fast, data.table-native implementation with C++ optimization.
+## Credits
 
+- **David Robinson**: Credited for the `fuzzyjoin` package, which served as the base for `fuzzystring`; some core `fuzzyjoin` functions were adapted and reinterpreted using `data.table`.
+
+**fuzzystring** builds on these great packages to provide a fast, data.table-native implementation with C++ optimization.
 

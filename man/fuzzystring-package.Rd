@@ -20,5 +20,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Paul E. Santos Andrade \email{paulefrens@gmail.com} (\href{https://orcid.org/0000-0002-6635-0375}{ORCID})
 
+Other contributors:
+\itemize{
+  \item David Robinson \email{admiral.david@gmail.com} (aut of fuzzyjoin) [contributor]
+}
+
 }
 \keyword{internal}
