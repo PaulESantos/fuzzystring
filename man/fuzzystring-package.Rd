@@ -4,9 +4,9 @@
 \name{fuzzystring-package}
 \alias{fuzzystring}
 \alias{fuzzystring-package}
-\title{fuzzystring: What the Package Does (One Line, Title Case)}
+\title{fuzzystring: Fuzzy String Joins for Data Frames}
 \description{
-What the package does (one paragraph).
+Join data frames using approximate string matching. Provides inner/left/right/full/semi/anti joins powered by string distance metrics from 'stringdist', with a fast data.table backend and optional distance columns in the output.
 }
 \seealso{
 Useful links:
