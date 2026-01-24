@@ -50,14 +50,32 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>fuzzystring provides fast, data.table-backed fuzzy joins for data frames using string distance metrics from stringdist. Use it when you need to merge rows that are “close enough” (misspellings, inconsistent labels, user input, or messy IDs).</p>
-<p>Key features:</p>
+<p><strong>fuzzystring</strong> provides fast, flexible fuzzy string joins for data frames using approximate string matching. Built on top of <code>data.table</code> and <code>stringdist</code>, it’s designed for efficiently merging datasets where exact matches aren’t possible due to misspellings, inconsistent formatting, or slight variations in text.</p>
+<div class="section level2">
+<h2 id="why-fuzzystring">Why fuzzystring?<a class="anchor" aria-label="anchor" href="#why-fuzzystring"></a>
+</h2>
+<p>Real-world data is messy. You might need to:</p>
 <ul>
-<li>inner/left/right/full/semi/anti fuzzy joins</li>
-<li>string distance methods from stringdist</li>
-<li>optional distance column in the result</li>
-<li>C++ row binding for performance on large joins</li>
+<li>Match company names that are spelled slightly differently across datasets</li>
+<li>Join customer records with typos or abbreviations</li>
+<li>Reconcile product catalogs with inconsistent naming</li>
+<li>Link survey responses to predefined categories despite spelling errors</li>
+<li>Merge datasets where identifiers have been transcribed with errors</li>
 </ul>
+<p><strong>fuzzystring</strong> makes these tasks straightforward with:</p>
+<ul>
+<li>
+<strong>All standard join types</strong>: inner, left, right, full, semi, and anti joins</li>
+<li>
+<strong>Multiple distance metrics</strong>: Levenshtein, Damerau-Levenshtein, Jaro-Winkler, Soundex, and more</li>
+<li>
+<strong>High performance</strong>: C++ row binding and <code>data.table</code> backend for speed</li>
+<li>
+<strong>Optional distance column</strong>: Track how close matches are</li>
+<li>
+<strong>Flexible matching</strong>: Case-insensitive options and customizable distance thresholds</li>
+</ul>
+</div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -72,24 +90,91 @@
 <div class="section level2">
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
+<p>Here’s a simple example matching diamond cuts with slight misspellings:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PaulESantos/fuzzystring" class="external-link">fuzzystring</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Idea"</span>, <span class="st">"Premiom"</span>, <span class="st">"Very Good"</span><span class="op">)</span>, id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span>
-<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>approx_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Ideal"</span>, <span class="st">"Premium"</span>, <span class="st">"VeryGood"</span><span class="op">)</span>, grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># Your messy data</span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Idea"</span>, <span class="st">"Premiom"</span>, <span class="st">"Very Good"</span><span class="op">)</span>, </span>
+<span>  id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span></span>
+<span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Reference data</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  approx_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Ideal"</span>, <span class="st">"Premium"</span>, <span class="st">"VeryGood"</span><span class="op">)</span>, </span>
+<span>  grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Fuzzy join with max distance of 2 edits</span></span>
 <span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span></span>
 <span>  <span class="va">x</span>, <span class="va">y</span>,</span>
 <span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>,</span>
 <span>  max_dist <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  distance_col <span class="op">=</span> <span class="st">"distance"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;      name id approx_name grp distance</span></span>
+<span><span class="co">#&gt; 1:   Idea  1       Ideal   A        1</span></span>
+<span><span class="co">#&gt; 2: Premiom  2     Premium   B        2</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="key-features">Key features<a class="anchor" aria-label="anchor" href="#key-features"></a>
+</h2>
 <div class="section level3">
-<h3 id="example-of-fuzzystring_inner_join-correcting-misspellings-against-a-dictionary">Example of <code>fuzzystring_inner_join</code>: Correcting misspellings against a dictionary<a class="anchor" aria-label="anchor" href="#example-of-fuzzystring_inner_join-correcting-misspellings-against-a-dictionary"></a>
+<h3 id="all-join-types-supported">All join types supported<a class="anchor" aria-label="anchor" href="#all-join-types-supported"></a>
 </h3>
-<p>Often you find yourself with a set of words that you want to combine with a “dictionary”- it could be a literal dictionary (as in this case) or a domain-specific category system. But you want to allow for small differences in spelling or punctuation.</p>
-<p>The package includes a set of common misspellings (<a href="https://en.wikipedia.org/wiki/Wikipedia:Lists_of_common_misspellings/For_machines" class="external-link">Wikipedia list</a>):</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Inner join - only matching rows</span></span>
+<span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Left join - all rows from x, matching rows from y</span></span>
+<span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_left_join</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Right join - all rows from y, matching rows from x</span></span>
+<span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_right_join</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Full join - all rows from both tables</span></span>
+<span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_full_join</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Semi join - rows from x that have a match in y</span></span>
+<span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_semi_join</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Anti join - rows from x that don't have a match in y</span></span>
+<span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_anti_join</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="multiple-distance-methods">Multiple distance methods<a class="anchor" aria-label="anchor" href="#multiple-distance-methods"></a>
+</h3>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Optimal String Alignment (default)</span></span>
+<span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"osa"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Damerau-Levenshtein</span></span>
+<span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"dl"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Jaro-Winkler (good for names)</span></span>
+<span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"jw"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Soundex (phonetic matching)</span></span>
+<span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"soundex"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="case-insensitive-matching">Case-insensitive matching<a class="anchor" aria-label="anchor" href="#case-insensitive-matching"></a>
+</h3>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span></span>
+<span>  <span class="va">x</span>, <span class="va">y</span>, </span>
+<span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>,</span>
+<span>  ignore_case <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  max_dist <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="extended-example-correcting-misspellings">Extended example: Correcting misspellings<a class="anchor" aria-label="anchor" href="#extended-example-correcting-misspellings"></a>
+</h2>
+<p>A common use case is matching misspelled words against a dictionary. The package includes a dataset of 4,500+ common misspellings from Wikipedia.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──</span></span>
 <span><span class="co">#&gt; ✔ dplyr     1.1.4     ✔ readr     2.1.6</span></span>
@@ -102,8 +187,9 @@
 <span><span class="co">#&gt; ✖ dplyr::lag()    masks stats::lag()</span></span>
 <span><span class="co">#&gt; ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PaulESantos/fuzzystring" class="external-link">fuzzystring</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">misspellings</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Load misspellings dataset</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">misspellings</span><span class="op">)</span></span>
 <span><span class="va">misspellings</span></span>
 <span><span class="co">#&gt; # A tibble: 4,505 × 2</span></span>
 <span><span class="co">#&gt;    misspelling correct   </span></span>
@@ -119,12 +205,11 @@
 <span><span class="co">#&gt;  9 aboutit     about it  </span></span>
 <span><span class="co">#&gt; 10 aboutthe    about the </span></span>
 <span><span class="co">#&gt; # ℹ 4,495 more rows</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># use the dictionary of words from the qdapDictionaries package,</span></span>
-<span><span class="co"># which is based on the Nettalk corpus.</span></span>
+<p>Let’s match these against a real dictionary:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Dictionary from qdapDictionaries package</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://trinker.github.com/qdapDictionaries/" class="external-link">qdapDictionaries</a></span><span class="op">)</span></span>
 <span><span class="va">words</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu">as_tibble</span><span class="op">(</span><span class="va">DICTIONARY</span><span class="op">)</span></span>
-<span></span>
 <span><span class="va">words</span></span>
 <span><span class="co">#&gt; # A tibble: 20,137 × 2</span></span>
 <span><span class="co">#&gt;    word  syllables</span></span>
@@ -140,17 +225,21 @@
 <span><span class="co">#&gt;  9 mmmm          1</span></span>
 <span><span class="co">#&gt; 10 pff           1</span></span>
 <span><span class="co">#&gt; # ℹ 20,127 more rows</span></span></code></pre></div>
-<p>As an example, we’ll pick 1000 of these words (you could try it on all of them though), and use <code>fuzzystring_inner_join</code> to join them against our dictionary.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<p>Sample 1,000 misspellings and find their matches:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2016</span><span class="op">)</span></span>
 <span><span class="va">sub_misspellings</span> <span class="op">&lt;-</span> <span class="va">misspellings</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">sample_n</span><span class="op">(</span><span class="fl">1000</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">joined</span> <span class="op">&lt;-</span> <span class="va">sub_misspellings</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span><span class="va">words</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>misspelling <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p>By default, <code>fuzzystring_inner_join</code> uses optimal string alignment (Damerau–Levenshtein distance), and we’re setting a maximum distance of 1 for a join. Notice that they’ve been joined in cases where <code>misspelling</code> is close to (but not equal to) <code>word</code>:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">joined</span></span>
+<span>  <span class="fu">sample_n</span><span class="op">(</span><span class="fl">1000</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Fuzzy join with max distance of 1</span></span>
+<span><span class="va">joined</span> <span class="op">&lt;-</span> <span class="va">sub_misspellings</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span></span>
+<span>    <span class="va">words</span>, </span>
+<span>    by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>misspelling <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>, </span>
+<span>    max_dist <span class="op">=</span> <span class="fl">1</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="va">joined</span></span>
 <span><span class="co">#&gt;      misspelling    correct       word syllables</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;     &lt;char&gt;     &lt;char&gt;     &lt;num&gt;</span></span>
 <span><span class="co">#&gt;   1:   cyclinder   cylinder   cylinder         3</span></span>
@@ -164,12 +253,13 @@
 <span><span class="co">#&gt; 758:        fiel      field       fuel         2</span></span>
 <span><span class="co">#&gt; 759:        fiel      field       riel         2</span></span>
 <span><span class="co">#&gt; 760:    aparment  apartment  apartment         3</span></span></code></pre></div>
-<div class="section level4">
-<h4 id="classification-accuracy">Classification accuracy<a class="anchor" aria-label="anchor" href="#classification-accuracy"></a>
-</h4>
-<p>Note that there are some redundancies; words that could be multiple items in the dictionary. These end up with one row per “guess” in the output. How many words did we classify?</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">joined</span> <span class="op">%&gt;%</span></span>
+<div class="section level3">
+<h3 id="analyzing-match-quality">Analyzing match quality<a class="anchor" aria-label="anchor" href="#analyzing-match-quality"></a>
+</h3>
+<p>Check how many misspellings we successfully matched:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Count unique misspellings matched</span></span>
+<span><span class="va">joined</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">count</span><span class="op">(</span><span class="va">misspelling</span>, <span class="va">correct</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      misspelling    correct     n</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;     &lt;char&gt; &lt;int&gt;</span></span>
@@ -183,87 +273,45 @@
 <span><span class="co">#&gt; 459:  wonderfull  wonderful     1</span></span>
 <span><span class="co">#&gt; 460:       wroet      wrote     1</span></span>
 <span><span class="co">#&gt; 461:     wupport    support     1</span></span>
-<span><span class="co">#&gt; 462:      zeebra      zebra     1</span></span></code></pre></div>
-<p>So we found a match in the dictionary for about half of the misspellings. In how many of the ones we classified did we get at least one of our guesses right?</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">which_correct</span> <span class="op">&lt;-</span> <span class="va">joined</span> <span class="op">%&gt;%</span></span>
+<span><span class="co">#&gt; 462:      zeebra      zebra     1</span></span>
+<span></span>
+<span><span class="co"># Calculate accuracy</span></span>
+<span><span class="va">which_correct</span> <span class="op">&lt;-</span> <span class="va">joined</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">misspelling</span>, <span class="va">correct</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">summarize</span><span class="op">(</span>guesses <span class="op">=</span> <span class="fu">n</span><span class="op">(</span><span class="op">)</span>, one_correct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">correct</span> <span class="op">==</span> <span class="va">word</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `summarise()` has grouped output by 'misspelling'. You can override using the</span></span>
-<span><span class="co">#&gt; `.groups` argument.</span></span>
+<span>  <span class="fu">summarize</span><span class="op">(</span></span>
+<span>    guesses <span class="op">=</span> <span class="fu">n</span><span class="op">(</span><span class="op">)</span>, </span>
+<span>    one_correct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">correct</span> <span class="op">==</span> <span class="va">word</span><span class="op">)</span>,</span>
+<span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
+<span>  <span class="op">)</span></span>
 <span></span>
-<span><span class="va">which_correct</span></span>
-<span><span class="co">#&gt; # A tibble: 462 × 4</span></span>
-<span><span class="co">#&gt; # Groups:   misspelling [453]</span></span>
-<span><span class="co">#&gt;    misspelling correct     guesses one_correct</span></span>
-<span><span class="co">#&gt;    &lt;chr&gt;       &lt;chr&gt;         &lt;int&gt; &lt;lgl&gt;      </span></span>
-<span><span class="co">#&gt;  1 abilty      ability           1 TRUE       </span></span>
-<span><span class="co">#&gt;  2 accademic   academic          1 TRUE       </span></span>
-<span><span class="co">#&gt;  3 accademy    academy           1 TRUE       </span></span>
-<span><span class="co">#&gt;  4 accension   accession         2 TRUE       </span></span>
-<span><span class="co">#&gt;  5 acceptence  acceptance        1 TRUE       </span></span>
-<span><span class="co">#&gt;  6 acedemic    academic          1 TRUE       </span></span>
-<span><span class="co">#&gt;  7 achive      achieve           4 TRUE       </span></span>
-<span><span class="co">#&gt;  8 acommodate  accommodate       1 TRUE       </span></span>
-<span><span class="co">#&gt;  9 acuracy     accuracy          1 TRUE       </span></span>
-<span><span class="co">#&gt; 10 addmission  admission         1 TRUE       </span></span>
-<span><span class="co">#&gt; # ℹ 452 more rows</span></span>
-<span></span>
-<span><span class="co"># percentage of guesses getting at least one right</span></span>
+<span><span class="co"># Percentage getting at least one correct guess</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">which_correct</span><span class="op">$</span><span class="va">one_correct</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.8246753</span></span>
 <span></span>
-<span><span class="co"># number uniquely correct (out of the original 1000)</span></span>
+<span><span class="co"># Number with exactly one correct match</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">which_correct</span><span class="op">$</span><span class="va">guesses</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span> <span class="va">which_correct</span><span class="op">$</span><span class="va">one_correct</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 290</span></span></code></pre></div>
-<p>Not bad.</p>
 </div>
-<div class="section level4">
-<h4 id="reporting-distance-in-the-joined-output">Reporting distance in the joined output<a class="anchor" aria-label="anchor" href="#reporting-distance-in-the-joined-output"></a>
-</h4>
-<p>If you wanted to include the distance as a column in your output, you can use the <code>distance_col</code> argument. For example, we may be interested in how many words were <em>two</em> letters apart.</p>
+<div class="section level3">
+<h3 id="including-distance-metrics">Including distance metrics<a class="anchor" aria-label="anchor" href="#including-distance-metrics"></a>
+</h3>
+<p>Add a distance column to see how far apart the matches are:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">joined_dists</span> <span class="op">&lt;-</span> <span class="va">sub_misspellings</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span><span class="va">words</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>misspelling <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>                        distance_col <span class="op">=</span> <span class="st">"distance"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span></span>
+<span>    <span class="va">words</span>, </span>
+<span>    by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>misspelling <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>, </span>
+<span>    max_dist <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>    distance_col <span class="op">=</span> <span class="st">"distance"</span></span>
+<span>  <span class="op">)</span></span>
 <span></span>
-<span><span class="va">joined_dists</span></span>
-<span><span class="co">#&gt;       misspelling    correct       word syllables distance</span></span>
-<span><span class="co">#&gt;            &lt;char&gt;     &lt;char&gt;     &lt;char&gt;     &lt;num&gt;    &lt;num&gt;</span></span>
-<span><span class="co">#&gt;    1:   cyclinder   cylinder   cylinder         3        1</span></span>
-<span><span class="co">#&gt;    2: beastiality bestiality bestiality         5        1</span></span>
-<span><span class="co">#&gt;    3:    affilate  affiliate  affiliate         4        1</span></span>
-<span><span class="co">#&gt;    4:    comitted  committed  committee         3        2</span></span>
-<span><span class="co">#&gt;    5:    acquited  acquitted    acquire         2        2</span></span>
-<span><span class="co">#&gt;   ---                                                     </span></span>
-<span><span class="co">#&gt; 8431:    aparment  apartment   apparent         3        2</span></span>
-<span><span class="co">#&gt; 8432:    aparment  apartment   averment         3        2</span></span>
-<span><span class="co">#&gt; 8433:    aparment  apartment    garment         2        2</span></span>
-<span><span class="co">#&gt; 8434:    aparment  apartment     parent         2        2</span></span>
-<span><span class="co">#&gt; 8435:    aparment  apartment    payment         2        2</span></span></code></pre></div>
-<p>Note the extra <code>distance</code> column, which in this case will always be less than or equal to 2. We could then pick the closest match for each, and examine how many of our closest matches were 1 or 2 away:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">closest</span> <span class="op">&lt;-</span> <span class="va">joined_dists</span> <span class="op">%&gt;%</span></span>
+<span><span class="co"># Find the closest match for each misspelling</span></span>
+<span><span class="va">closest</span> <span class="op">&lt;-</span> <span class="va">joined_dists</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">misspelling</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">top_n</span><span class="op">(</span><span class="fl">1</span>, <span class="fu">desc</span><span class="op">(</span><span class="va">distance</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">closest</span></span>
-<span><span class="co">#&gt; # A tibble: 1,336 × 5</span></span>
-<span><span class="co">#&gt;    misspelling   correct     word          syllables distance</span></span>
-<span><span class="co">#&gt;    &lt;chr&gt;         &lt;chr&gt;       &lt;chr&gt;             &lt;dbl&gt;    &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1 cyclinder     cylinder    cylinder              3        1</span></span>
-<span><span class="co">#&gt;  2 beastiality   bestiality  bestiality            5        1</span></span>
-<span><span class="co">#&gt;  3 affilate      affiliate   affiliate             4        1</span></span>
-<span><span class="co">#&gt;  4 comitted      committed   committee             3        2</span></span>
-<span><span class="co">#&gt;  5 acquited      acquitted   acquire               2        2</span></span>
-<span><span class="co">#&gt;  6 acquited      acquitted   acquit                2        2</span></span>
-<span><span class="co">#&gt;  7 decompositing decomposing decomposition         5        2</span></span>
-<span><span class="co">#&gt;  8 decieved      deceived    deceive               2        2</span></span>
-<span><span class="co">#&gt;  9 asociated     associated  associate             4        2</span></span>
-<span><span class="co">#&gt; 10 supress       suppress    suppress              2        1</span></span>
-<span><span class="co">#&gt; # ℹ 1,326 more rows</span></span>
-<span></span>
+<span><span class="co"># Distribution of distances</span></span>
 <span><span class="va">closest</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">count</span><span class="op">(</span><span class="va">distance</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 3 × 2</span></span>
@@ -273,16 +321,19 @@
 <span><span class="co">#&gt; 2        1   739</span></span>
 <span><span class="co">#&gt; 3        2   594</span></span></code></pre></div>
 </div>
-<div class="section level4">
-<h4 id="other-joining-functions">Other joining functions<a class="anchor" aria-label="anchor" href="#other-joining-functions"></a>
-</h4>
-<p>Note that <code>fuzzystring_inner_join</code> is not the only function we can use. If we’re interested in including the words that we <em>couldn’t</em> classify, we could have use <code>fuzzystring_left_join</code>:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="using-different-join-types">Using different join types<a class="anchor" aria-label="anchor" href="#using-different-join-types"></a>
+</h3>
+<p><strong>Left join</strong> to keep unmatched words:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">left_joined</span> <span class="op">&lt;-</span> <span class="va">sub_misspellings</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_left_join</a></span><span class="op">(</span><span class="va">words</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>misspelling <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_left_join</a></span><span class="op">(</span></span>
+<span>    <span class="va">words</span>, </span>
+<span>    by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>misspelling <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>, </span>
+<span>    max_dist <span class="op">=</span> <span class="fl">1</span></span>
+<span>  <span class="op">)</span></span>
 <span></span>
-<span><span class="va">left_joined</span></span>
-<span></span>
+<span><span class="co"># Show words we couldn't match</span></span>
 <span><span class="va">left_joined</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">word</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        misspelling       correct   word syllables</span></span>
@@ -298,32 +349,627 @@
 <span><span class="co">#&gt; 536:       Januray       January   &lt;NA&gt;        NA</span></span>
 <span><span class="co">#&gt; 537:   aggaravates    aggravates   &lt;NA&gt;        NA</span></span>
 <span><span class="co">#&gt; 538:       wayword       wayward   &lt;NA&gt;        NA</span></span></code></pre></div>
-<p>(To get <em>just</em> the ones without matches immediately, we could have used <code>fuzzystring_anti_join</code>). If we increase our distance threshold, we’ll increase the fraction with a correct guess, but also get more false positive guesses:</p>
+<p><strong>Anti join</strong> to find only unmatched words:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">unmatched</span> <span class="op">&lt;-</span> <span class="va">sub_misspellings</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_anti_join</a></span><span class="op">(</span></span>
+<span>    <span class="va">words</span>, </span>
+<span>    by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>misspelling <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>, </span>
+<span>    max_dist <span class="op">=</span> <span class="fl">1</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="va">unmatched</span></span>
+<span><span class="co">#&gt;            misspelling              correct</span></span>
+<span><span class="co">#&gt; 1            Sanhedrim            Sanhedrin</span></span>
+<span><span class="co">#&gt; 2        consicousness        consciousness</span></span>
+<span><span class="co">#&gt; 3           repubicans          republicans</span></span>
+<span><span class="co">#&gt; 4             comitted            committed</span></span>
+<span><span class="co">#&gt; 5            emmisions            emissions</span></span>
+<span><span class="co">#&gt; 6             acquited            acquitted</span></span>
+<span><span class="co">#&gt; 7        decompositing          decomposing</span></span>
+<span><span class="co">#&gt; 8             decieved             deceived</span></span>
+<span><span class="co">#&gt; 9            asociated           associated</span></span>
+<span><span class="co">#&gt; 10         commonweath         commonwealth</span></span>
+<span><span class="co">#&gt; 11           supressed           suppressed</span></span>
+<span><span class="co">#&gt; 12            soliders             soldiers</span></span>
+<span><span class="co">#&gt; 13        aproximately        approximately</span></span>
+<span><span class="co">#&gt; 14               htikn                think</span></span>
+<span><span class="co">#&gt; 15               peoms                poems</span></span>
+<span><span class="co">#&gt; 16         territorist            terrorist</span></span>
+<span><span class="co">#&gt; 17         incorprates         incorporates</span></span>
+<span><span class="co">#&gt; 18          Missisippi          Mississippi</span></span>
+<span><span class="co">#&gt; 19            lazyness             laziness</span></span>
+<span><span class="co">#&gt; 20       constituional       constitutional</span></span>
+<span><span class="co">#&gt; 21            issueing              issuing</span></span>
+<span><span class="co">#&gt; 22       accomodations       accommodations</span></span>
+<span><span class="co">#&gt; 23            verisons             versions</span></span>
+<span><span class="co">#&gt; 24             alusion             illusion</span></span>
+<span><span class="co">#&gt; 25              lonley               lonely</span></span>
+<span><span class="co">#&gt; 26         unsuprising         unsurprising</span></span>
+<span><span class="co">#&gt; 27          succesfuly         successfully</span></span>
+<span><span class="co">#&gt; 28             witheld             withheld</span></span>
+<span><span class="co">#&gt; 29          motiviated            motivated</span></span>
+<span><span class="co">#&gt; 30          resistence           resistance</span></span>
+<span><span class="co">#&gt; 31            agrieved            aggrieved</span></span>
+<span><span class="co">#&gt; 32  anthromorphization anthropomorphization</span></span>
+<span><span class="co">#&gt; 33       incidentially         incidentally</span></span>
+<span><span class="co">#&gt; 34            tempalte             template</span></span>
+<span><span class="co">#&gt; 35         techiniques           techniques</span></span>
+<span><span class="co">#&gt; 36            tyranies            tyrannies</span></span>
+<span><span class="co">#&gt; 37       overshaddowed         overshadowed</span></span>
+<span><span class="co">#&gt; 38        ansalisation         nasalisation</span></span>
+<span><span class="co">#&gt; 39       enviornmental        environmental</span></span>
+<span><span class="co">#&gt; 40            bradcast            broadcast</span></span>
+<span><span class="co">#&gt; 41          abreviated          abbreviated</span></span>
+<span><span class="co">#&gt; 42           noticably           noticeably</span></span>
+<span><span class="co">#&gt; 43            sppeches             speeches</span></span>
+<span><span class="co">#&gt; 44          occurences          occurrences</span></span>
+<span><span class="co">#&gt; 45         effeciently          efficiently</span></span>
+<span><span class="co">#&gt; 46         poportional         proportional</span></span>
+<span><span class="co">#&gt; 47       unsuprisingly       unsurprisingly</span></span>
+<span><span class="co">#&gt; 48              Malcom              Malcolm</span></span>
+<span><span class="co">#&gt; 49         causalities           casualties</span></span>
+<span><span class="co">#&gt; 50             futhroc              futhark</span></span>
+<span><span class="co">#&gt; 51        reorganision       reorganisation</span></span>
+<span><span class="co">#&gt; 52           ocurrance           occurrence</span></span>
+<span><span class="co">#&gt; 53            humoural              humoral</span></span>
+<span><span class="co">#&gt; 54        maintainence          maintenance</span></span>
+<span><span class="co">#&gt; 55           rebllions           rebellions</span></span>
+<span><span class="co">#&gt; 56           sountrack           soundtrack</span></span>
+<span><span class="co">#&gt; 57            differnt            different</span></span>
+<span><span class="co">#&gt; 58          methaphors            metaphors</span></span>
+<span><span class="co">#&gt; 59        disemination        dissemination</span></span>
+<span><span class="co">#&gt; 60           dimenions           dimensions</span></span>
+<span><span class="co">#&gt; 61          dependancy           dependency</span></span>
+<span><span class="co">#&gt; 62             hapened             happened</span></span>
+<span><span class="co">#&gt; 63         breakthough         breakthrough</span></span>
+<span><span class="co">#&gt; 64         volonteered          volunteered</span></span>
+<span><span class="co">#&gt; 65              fufill              fulfill</span></span>
+<span><span class="co">#&gt; 66             aeriels              aerials</span></span>
+<span><span class="co">#&gt; 67           repubican           republican</span></span>
+<span><span class="co">#&gt; 68       overwheliming         overwhelming</span></span>
+<span><span class="co">#&gt; 69          asssassans            assassins</span></span>
+<span><span class="co">#&gt; 70       juristictions        jurisdictions</span></span>
+<span><span class="co">#&gt; 71           percepted            perceived</span></span>
+<span><span class="co">#&gt; 72       anthropolgist       anthropologist</span></span>
+<span><span class="co">#&gt; 73             hosited              hoisted</span></span>
+<span><span class="co">#&gt; 74             siezing              seizing</span></span>
+<span><span class="co">#&gt; 75           maltesian              Maltese</span></span>
+<span><span class="co">#&gt; 76       volounteering         volunteering</span></span>
+<span><span class="co">#&gt; 77            fulfiled            fulfilled</span></span>
+<span><span class="co">#&gt; 78         mischevious          mischievous</span></span>
+<span><span class="co">#&gt; 79           goverance           governance</span></span>
+<span><span class="co">#&gt; 80           acheiving            achieving</span></span>
+<span><span class="co">#&gt; 81          immidately          immediately</span></span>
+<span><span class="co">#&gt; 82         constituant          constituent</span></span>
+<span><span class="co">#&gt; 83        manouverable         maneuverable</span></span>
+<span><span class="co">#&gt; 84    architechturally      architecturally</span></span>
+<span><span class="co">#&gt; 85          controling          controlling</span></span>
+<span><span class="co">#&gt; 86       transmissable        transmissible</span></span>
+<span><span class="co">#&gt; 87        predomiantly        predominately</span></span>
+<span><span class="co">#&gt; 88             meranda              veranda</span></span>
+<span><span class="co">#&gt; 89            harrases             harasses</span></span>
+<span><span class="co">#&gt; 90       consenquently         consequently</span></span>
+<span><span class="co">#&gt; 91            leibnitz              leibniz</span></span>
+<span><span class="co">#&gt; 92          councellor            councilor</span></span>
+<span><span class="co">#&gt; 93          polinators          pollinators</span></span>
+<span><span class="co">#&gt; 94          substracts            subtracts</span></span>
+<span><span class="co">#&gt; 95           atributes           attributes</span></span>
+<span><span class="co">#&gt; 96            noteably              notably</span></span>
+<span><span class="co">#&gt; 97          messenging            messaging</span></span>
+<span><span class="co">#&gt; 98         deteoriated         deteriorated</span></span>
+<span><span class="co">#&gt; 99        assymetrical         asymmetrical</span></span>
+<span><span class="co">#&gt; 100         fortelling          foretelling</span></span>
+<span><span class="co">#&gt; 101       completetion           completion</span></span>
+<span><span class="co">#&gt; 102      archaelogists       archaeologists</span></span>
+<span><span class="co">#&gt; 103     restauranteurs        restaurateurs</span></span>
+<span><span class="co">#&gt; 104         agreeement            agreement</span></span>
+<span><span class="co">#&gt; 105         descisions            decisions</span></span>
+<span><span class="co">#&gt; 106           greatful             grateful</span></span>
+<span><span class="co">#&gt; 107             densly              densely</span></span>
+<span><span class="co">#&gt; 108          millepede            millipede</span></span>
+<span><span class="co">#&gt; 109         conciously          consciously</span></span>
+<span><span class="co">#&gt; 110           diferent            different</span></span>
+<span><span class="co">#&gt; 111      commuications       communications</span></span>
+<span><span class="co">#&gt; 112    manisfestations       manifestations</span></span>
+<span><span class="co">#&gt; 113           baceause              because</span></span>
+<span><span class="co">#&gt; 114         inofficial           unofficial</span></span>
+<span><span class="co">#&gt; 115          ciriculum           curriculum</span></span>
+<span><span class="co">#&gt; 116        resignement           resignment</span></span>
+<span><span class="co">#&gt; 117       charaterized        characterized</span></span>
+<span><span class="co">#&gt; 118       unsucessfull         unsuccessful</span></span>
+<span><span class="co">#&gt; 119             acused              accused</span></span>
+<span><span class="co">#&gt; 120          referiang            referring</span></span>
+<span><span class="co">#&gt; 121          offically           officially</span></span>
+<span><span class="co">#&gt; 122      approximitely        approximately</span></span>
+<span><span class="co">#&gt; 123         beleagured          beleaguered</span></span>
+<span><span class="co">#&gt; 124         resteraunt           restaurant</span></span>
+<span><span class="co">#&gt; 125          unwieldly             unwieldy</span></span>
+<span><span class="co">#&gt; 126          scaleable             scalable</span></span>
+<span><span class="co">#&gt; 127         realitvely           relatively</span></span>
+<span><span class="co">#&gt; 128            poweful             powerful</span></span>
+<span><span class="co">#&gt; 129          origanaly           originally</span></span>
+<span><span class="co">#&gt; 130        successully         successfully</span></span>
+<span><span class="co">#&gt; 131        insitutions         institutions</span></span>
+<span><span class="co">#&gt; 132            relized             realised</span></span>
+<span><span class="co">#&gt; 133         Fransiscan           Franciscan</span></span>
+<span><span class="co">#&gt; 134          efficency           efficiency</span></span>
+<span><span class="co">#&gt; 135        particuarly         particularly</span></span>
+<span><span class="co">#&gt; 136          atheneans            athenians</span></span>
+<span><span class="co">#&gt; 137          recidents            residents</span></span>
+<span><span class="co">#&gt; 138            muscels              mussels</span></span>
+<span><span class="co">#&gt; 139          excellant            excellent</span></span>
+<span><span class="co">#&gt; 140         equivelant           equivalent</span></span>
+<span><span class="co">#&gt; 141       culiminating          culminating</span></span>
+<span><span class="co">#&gt; 142            breifly              briefly</span></span>
+<span><span class="co">#&gt; 143              adres              address</span></span>
+<span><span class="co">#&gt; 144       matheticians       mathematicians</span></span>
+<span><span class="co">#&gt; 145          admitedly           admittedly</span></span>
+<span><span class="co">#&gt; 146            shoudln            shouldn't</span></span>
+<span><span class="co">#&gt; 147       occassionaly         occasionally</span></span>
+<span><span class="co">#&gt; 148           Michagan             Michigan</span></span>
+<span><span class="co">#&gt; 149       assasination        assassination</span></span>
+<span><span class="co">#&gt; 150         marketting            marketing</span></span>
+<span><span class="co">#&gt; 151      opthamologist      ophthalmologist</span></span>
+<span><span class="co">#&gt; 152          vaguaries             vagaries</span></span>
+<span><span class="co">#&gt; 153         practioner         practitioner</span></span>
+<span><span class="co">#&gt; 154           aquiring            acquiring</span></span>
+<span><span class="co">#&gt; 155        particually         particularly</span></span>
+<span><span class="co">#&gt; 156           forbiden            forbidden</span></span>
+<span><span class="co">#&gt; 157          Carmalite            Carmelite</span></span>
+<span><span class="co">#&gt; 158            relized             realized</span></span>
+<span><span class="co">#&gt; 159         terriories          territories</span></span>
+<span><span class="co">#&gt; 160         assoicated           associated</span></span>
+<span><span class="co">#&gt; 161             mileau               milieu</span></span>
+<span><span class="co">#&gt; 162         ocasionaly         occasionally</span></span>
+<span><span class="co">#&gt; 163         techicians          technicians</span></span>
+<span><span class="co">#&gt; 164       UnitesStates         UnitedStates</span></span>
+<span><span class="co">#&gt; 165           ocassion             occasion</span></span>
+<span><span class="co">#&gt; 166          homestate           home state</span></span>
+<span><span class="co">#&gt; 167        occurrances          occurrences</span></span>
+<span><span class="co">#&gt; 168        philosphies         philosophies</span></span>
+<span><span class="co">#&gt; 169          garantees           guarantees</span></span>
+<span><span class="co">#&gt; 170               kwno                 know</span></span>
+<span><span class="co">#&gt; 171          santioned           sanctioned</span></span>
+<span><span class="co">#&gt; 172         reportadly           reportedly</span></span>
+<span><span class="co">#&gt; 173          overthere           over there</span></span>
+<span><span class="co">#&gt; 174            helpped               helped</span></span>
+<span><span class="co">#&gt; 175   manoeuverability      maneuverability</span></span>
+<span><span class="co">#&gt; 176         deriviated              derived</span></span>
+<span><span class="co">#&gt; 177         doccuments            documents</span></span>
+<span><span class="co">#&gt; 178            intered             interred</span></span>
+<span><span class="co">#&gt; 179       caracterized        characterized</span></span>
+<span><span class="co">#&gt; 180         exculsivly          exclusively</span></span>
+<span><span class="co">#&gt; 181        transfering         transferring</span></span>
+<span><span class="co">#&gt; 182              gogin                going</span></span>
+<span><span class="co">#&gt; 183           pomotion            promotion</span></span>
+<span><span class="co">#&gt; 184             quizes              quizzes</span></span>
+<span><span class="co">#&gt; 185           funguses                fungi</span></span>
+<span><span class="co">#&gt; 186        incomptable         incompatible</span></span>
+<span><span class="co">#&gt; 187           poluting            polluting</span></span>
+<span><span class="co">#&gt; 188    archetecturally      architecturally</span></span>
+<span><span class="co">#&gt; 189         poulations          populations</span></span>
+<span><span class="co">#&gt; 190       authoritiers          authorities</span></span>
+<span><span class="co">#&gt; 191            meranda              Miranda</span></span>
+<span><span class="co">#&gt; 192          proffesed            professed</span></span>
+<span><span class="co">#&gt; 193            exliled               exiled</span></span>
+<span><span class="co">#&gt; 194       dissobediant          disobedient</span></span>
+<span><span class="co">#&gt; 195            vasalls              vassals</span></span>
+<span><span class="co">#&gt; 196          obstruced           obstructed</span></span>
+<span><span class="co">#&gt; 197          condemmed            condemned</span></span>
+<span><span class="co">#&gt; 198         precentage           percentage</span></span>
+<span><span class="co">#&gt; 199        charachters           characters</span></span>
+<span><span class="co">#&gt; 200          controlls             controls</span></span>
+<span><span class="co">#&gt; 201           formelly             formerly</span></span>
+<span><span class="co">#&gt; 202       accomadation        accommodation</span></span>
+<span><span class="co">#&gt; 203         embarrased          embarrassed</span></span>
+<span><span class="co">#&gt; 204      dissobediance         disobedience</span></span>
+<span><span class="co">#&gt; 205            suceeds             succeeds</span></span>
+<span><span class="co">#&gt; 206        frequentily           frequently</span></span>
+<span><span class="co">#&gt; 207            seaches             searches</span></span>
+<span><span class="co">#&gt; 208         comissions          commissions</span></span>
+<span><span class="co">#&gt; 209          shadasloo             shadaloo</span></span>
+<span><span class="co">#&gt; 210         insistance           insistence</span></span>
+<span><span class="co">#&gt; 211          dependant            dependent</span></span>
+<span><span class="co">#&gt; 212           sophmore            sophomore</span></span>
+<span><span class="co">#&gt; 213       incorportaed         incorporated</span></span>
+<span><span class="co">#&gt; 214         electricly         electrically</span></span>
+<span><span class="co">#&gt; 215         councellor            counselor</span></span>
+<span><span class="co">#&gt; 216      comminication        communication</span></span>
+<span><span class="co">#&gt; 217        assertation            assertion</span></span>
+<span><span class="co">#&gt; 218          syphyllis             syphilis</span></span>
+<span><span class="co">#&gt; 219      dissagreement         disagreement</span></span>
+<span><span class="co">#&gt; 220          crticised           criticised</span></span>
+<span><span class="co">#&gt; 221     unforetunately        unfortunately</span></span>
+<span><span class="co">#&gt; 222       Rockerfeller          Rockefeller</span></span>
+<span><span class="co">#&gt; 223           commedic              comedic</span></span>
+<span><span class="co">#&gt; 224              unsed               unused</span></span>
+<span><span class="co">#&gt; 225         sucesfully         successfully</span></span>
+<span><span class="co">#&gt; 226         beautyfull            beautiful</span></span>
+<span><span class="co">#&gt; 227        catagorized          categorized</span></span>
+<span><span class="co">#&gt; 228           mchanics            mechanics</span></span>
+<span><span class="co">#&gt; 229          Phonecian           Phoenecian</span></span>
+<span><span class="co">#&gt; 230           Cambrige            Cambridge</span></span>
+<span><span class="co">#&gt; 231      commmemorated         commemorated</span></span>
+<span><span class="co">#&gt; 232           Carnagie             Carnegie</span></span>
+<span><span class="co">#&gt; 233         equilibium          equilibrium</span></span>
+<span><span class="co">#&gt; 234          contendor            contender</span></span>
+<span><span class="co">#&gt; 235        harrasments          harassments</span></span>
+<span><span class="co">#&gt; 236       traditionaly        traditionally</span></span>
+<span><span class="co">#&gt; 237          reedeming            redeeming</span></span>
+<span><span class="co">#&gt; 238           exicting             exciting</span></span>
+<span><span class="co">#&gt; 239        repectively         respectively</span></span>
+<span><span class="co">#&gt; 240           bigining            beginning</span></span>
+<span><span class="co">#&gt; 241             aleged              alleged</span></span>
+<span><span class="co">#&gt; 242          exerbated          exacerbated</span></span>
+<span><span class="co">#&gt; 243           Europian             European</span></span>
+<span><span class="co">#&gt; 244       substraction          subtraction</span></span>
+<span><span class="co">#&gt; 245            liasons             liaisons</span></span>
+<span><span class="co">#&gt; 246           intially            initially</span></span>
+<span><span class="co">#&gt; 247            intered             interned</span></span>
+<span><span class="co">#&gt; 248         corridoors            corridors</span></span>
+<span><span class="co">#&gt; 249        difficulity           difficulty</span></span>
+<span><span class="co">#&gt; 250         criticists              critics</span></span>
+<span><span class="co">#&gt; 251           meerkrat              meerkat</span></span>
+<span><span class="co">#&gt; 252      compatability        compatibility</span></span>
+<span><span class="co">#&gt; 253         apperances          appearances</span></span>
+<span><span class="co">#&gt; 254          beleiving            believing</span></span>
+<span><span class="co">#&gt; 255          relativly           relatively</span></span>
+<span><span class="co">#&gt; 256           persuits             pursuits</span></span>
+<span><span class="co">#&gt; 257           strikely           strikingly</span></span>
+<span><span class="co">#&gt; 258        indigineous           indigenous</span></span>
+<span><span class="co">#&gt; 259            occured             occurred</span></span>
+<span><span class="co">#&gt; 260         apparantly           apparently</span></span>
+<span><span class="co">#&gt; 261          voleyball           volleyball</span></span>
+<span><span class="co">#&gt; 262           montains            mountains</span></span>
+<span><span class="co">#&gt; 263            teached               taught</span></span>
+<span><span class="co">#&gt; 264         hsitorians           historians</span></span>
+<span><span class="co">#&gt; 265          hieroglph           hieroglyph</span></span>
+<span><span class="co">#&gt; 266          harrasing            harassing</span></span>
+<span><span class="co">#&gt; 267          Dravadian            Dravidian</span></span>
+<span><span class="co">#&gt; 268         propogates           propagates</span></span>
+<span><span class="co">#&gt; 269        succesfully         successfully</span></span>
+<span><span class="co">#&gt; 270        manufatured         manufactured</span></span>
+<span><span class="co">#&gt; 271          paralelly           parallelly</span></span>
+<span><span class="co">#&gt; 272           shineing              shining</span></span>
+<span><span class="co">#&gt; 273       strenghtened         strengthened</span></span>
+<span><span class="co">#&gt; 274          facilites           facilities</span></span>
+<span><span class="co">#&gt; 275         recipiants           recipients</span></span>
+<span><span class="co">#&gt; 276          octohedra            octahedra</span></span>
+<span><span class="co">#&gt; 277         cerimonies           ceremonies</span></span>
+<span><span class="co">#&gt; 278        delevopment          development</span></span>
+<span><span class="co">#&gt; 279        eleminating          eliminating</span></span>
+<span><span class="co">#&gt; 280          Novermber             November</span></span>
+<span><span class="co">#&gt; 281           yeilding             yielding</span></span>
+<span><span class="co">#&gt; 282         sucessfull           successful</span></span>
+<span><span class="co">#&gt; 283          conquerer            conqueror</span></span>
+<span><span class="co">#&gt; 284           allopone            allophone</span></span>
+<span><span class="co">#&gt; 285         publishher            publisher</span></span>
+<span><span class="co">#&gt; 286       unequalities         inequalities</span></span>
+<span><span class="co">#&gt; 287        catapillars         caterpillars</span></span>
+<span><span class="co">#&gt; 288          collecton           collection</span></span>
+<span><span class="co">#&gt; 289       commisioning        commissioning</span></span>
+<span><span class="co">#&gt; 290       crucifiction          crucifixion</span></span>
+<span><span class="co">#&gt; 291         publisheed            published</span></span>
+<span><span class="co">#&gt; 292         transfered          transferred</span></span>
+<span><span class="co">#&gt; 293         Cincinatti           Cincinnati</span></span>
+<span><span class="co">#&gt; 294        persistance          persistence</span></span>
+<span><span class="co">#&gt; 295        specifiying           specifying</span></span>
+<span><span class="co">#&gt; 296             Pucini              Puccini</span></span>
+<span><span class="co">#&gt; 297          centruies            centuries</span></span>
+<span><span class="co">#&gt; 298          criterias             criteria</span></span>
+<span><span class="co">#&gt; 299      refridgerator         refrigerator</span></span>
+<span><span class="co">#&gt; 300        inheritence          inheritance</span></span>
+<span><span class="co">#&gt; 301      relinqushment       relinquishment</span></span>
+<span><span class="co">#&gt; 302        dificulties         difficulties</span></span>
+<span><span class="co">#&gt; 303       univeristies         universities</span></span>
+<span><span class="co">#&gt; 304            harased             harassed</span></span>
+<span><span class="co">#&gt; 305   phillosophically      philosophically</span></span>
+<span><span class="co">#&gt; 306           spendour            splendour</span></span>
+<span><span class="co">#&gt; 307         embezelled            embezzled</span></span>
+<span><span class="co">#&gt; 308           intented             intended</span></span>
+<span><span class="co">#&gt; 309       cannotations         connotations</span></span>
+<span><span class="co">#&gt; 310        continously         continuously</span></span>
+<span><span class="co">#&gt; 311       consistantly         consistently</span></span>
+<span><span class="co">#&gt; 312           exellent            excellent</span></span>
+<span><span class="co">#&gt; 313        critisizing          criticising</span></span>
+<span><span class="co">#&gt; 314        Cincinnatti           Cincinnati</span></span>
+<span><span class="co">#&gt; 315          dissapear            disappear</span></span>
+<span><span class="co">#&gt; 316         restarants          restaurants</span></span>
+<span><span class="co">#&gt; 317      transcendance        transcendence</span></span>
+<span><span class="co">#&gt; 318        soverignity          sovereignty</span></span>
+<span><span class="co">#&gt; 319      archeaologist         archeologist</span></span>
+<span><span class="co">#&gt; 320             Enlish               enlist</span></span>
+<span><span class="co">#&gt; 321          beggining            beginning</span></span>
+<span><span class="co">#&gt; 322              tihkn                think</span></span>
+<span><span class="co">#&gt; 323         seperating           separating</span></span>
+<span><span class="co">#&gt; 324      heiroglyphics        hieroglyphics</span></span>
+<span><span class="co">#&gt; 325              yaers                years</span></span>
+<span><span class="co">#&gt; 326             casues               causes</span></span>
+<span><span class="co">#&gt; 327           potrayed            portrayed</span></span>
+<span><span class="co">#&gt; 328    untranslateable       untranslatable</span></span>
+<span><span class="co">#&gt; 329        implimented          implemented</span></span>
+<span><span class="co">#&gt; 330          harrassed             harassed</span></span>
+<span><span class="co">#&gt; 331          diablical           diabolical</span></span>
+<span><span class="co">#&gt; 332       compatiblity        compatibility</span></span>
+<span><span class="co">#&gt; 333          esitmated            estimated</span></span>
+<span><span class="co">#&gt; 334           dowloads            downloads</span></span>
+<span><span class="co">#&gt; 335         ditributed          distributed</span></span>
+<span><span class="co">#&gt; 336         maneouvred           manoeuvred</span></span>
+<span><span class="co">#&gt; 337          receeding             receding</span></span>
+<span><span class="co">#&gt; 338         immitating            imitating</span></span>
+<span><span class="co">#&gt; 339        unneccesary          unnecessary</span></span>
+<span><span class="co">#&gt; 340       volonteering         volunteering</span></span>
+<span><span class="co">#&gt; 341            effords              efforts</span></span>
+<span><span class="co">#&gt; 342           surveyer             surveyor</span></span>
+<span><span class="co">#&gt; 343      subcatagories        subcategories</span></span>
+<span><span class="co">#&gt; 344          algoritms           algorithms</span></span>
+<span><span class="co">#&gt; 345            adequit             adequate</span></span>
+<span><span class="co">#&gt; 346          Farenheit           Fahrenheit</span></span>
+<span><span class="co">#&gt; 347            altough             although</span></span>
+<span><span class="co">#&gt; 348          appenines            Apennines</span></span>
+<span><span class="co">#&gt; 349        univesities         universities</span></span>
+<span><span class="co">#&gt; 350         enforceing            enforcing</span></span>
+<span><span class="co">#&gt; 351          triguered            triggered</span></span>
+<span><span class="co">#&gt; 352          facinated           fascinated</span></span>
+<span><span class="co">#&gt; 353          everthing           everything</span></span>
+<span><span class="co">#&gt; 354        convienient           convenient</span></span>
+<span><span class="co">#&gt; 355        continueing           continuing</span></span>
+<span><span class="co">#&gt; 356           assasins            assassins</span></span>
+<span><span class="co">#&gt; 357           succsess              success</span></span>
+<span><span class="co">#&gt; 358         catagories           categories</span></span>
+<span><span class="co">#&gt; 359         challanged           challenged</span></span>
+<span><span class="co">#&gt; 360         acustommed           accustomed</span></span>
+<span><span class="co">#&gt; 361          condamned            condemned</span></span>
+<span><span class="co">#&gt; 362        unsuccesful         unsuccessful</span></span>
+<span><span class="co">#&gt; 363         definately           definitely</span></span>
+<span><span class="co">#&gt; 364           catagory             category</span></span>
+<span><span class="co">#&gt; 365        asphyxation         asphyxiation</span></span>
+<span><span class="co">#&gt; 366           anounced            announced</span></span>
+<span><span class="co">#&gt; 367          permenant            permanent</span></span>
+<span><span class="co">#&gt; 368          discribed            described</span></span>
+<span><span class="co">#&gt; 369             illess              illness</span></span>
+<span><span class="co">#&gt; 370         unsuprised          unsurprised</span></span>
+<span><span class="co">#&gt; 371          performes            performed</span></span>
+<span><span class="co">#&gt; 372          publisger            publisher</span></span>
+<span><span class="co">#&gt; 373         adressable          addressable</span></span>
+<span><span class="co">#&gt; 374          marrtyred             martyred</span></span>
+<span><span class="co">#&gt; 375           emmiting             emitting</span></span>
+<span><span class="co">#&gt; 376           Mythraic             Mithraic</span></span>
+<span><span class="co">#&gt; 377     coincedentally       coincidentally</span></span>
+<span><span class="co">#&gt; 378        signifigant          significant</span></span>
+<span><span class="co">#&gt; 379          controled           controlled</span></span>
+<span><span class="co">#&gt; 380       distingished        distinguished</span></span>
+<span><span class="co">#&gt; 381         dimunitive           diminutive</span></span>
+<span><span class="co">#&gt; 382           athenean             athenian</span></span>
+<span><span class="co">#&gt; 383          addresing           addressing</span></span>
+<span><span class="co">#&gt; 384             offred              offered</span></span>
+<span><span class="co">#&gt; 385          propperly             properly</span></span>
+<span><span class="co">#&gt; 386            infered             inferred</span></span>
+<span><span class="co">#&gt; 387             habeus               habeas</span></span>
+<span><span class="co">#&gt; 388            careing               caring</span></span>
+<span><span class="co">#&gt; 389          adquiring            acquiring</span></span>
+<span><span class="co">#&gt; 390         Guaduloupe            Guadalupe</span></span>
+<span><span class="co">#&gt; 391       contributers         contributors</span></span>
+<span><span class="co">#&gt; 392         aggreement            agreement</span></span>
+<span><span class="co">#&gt; 393          introdued           introduced</span></span>
+<span><span class="co">#&gt; 394      demographical          demographic</span></span>
+<span><span class="co">#&gt; 395           acccused              accused</span></span>
+<span><span class="co">#&gt; 396       speciallized          specialized</span></span>
+<span><span class="co">#&gt; 397     contamporaries       contemporaries</span></span>
+<span><span class="co">#&gt; 398     restaraunteurs        restaurateurs</span></span>
+<span><span class="co">#&gt; 399       circumsicion         circumcision</span></span>
+<span><span class="co">#&gt; 400             useing                using</span></span>
+<span><span class="co">#&gt; 401          satelites           satellites</span></span>
+<span><span class="co">#&gt; 402          countains             contains</span></span>
+<span><span class="co">#&gt; 403           diffrent            different</span></span>
+<span><span class="co">#&gt; 404      transcripting        transcription</span></span>
+<span><span class="co">#&gt; 405           inventer             inventor</span></span>
+<span><span class="co">#&gt; 406         cartilidge            cartilage</span></span>
+<span><span class="co">#&gt; 407         bombarment          bombardment</span></span>
+<span><span class="co">#&gt; 408          dipthongs           diphthongs</span></span>
+<span><span class="co">#&gt; 409     archeaologists        archeologists</span></span>
+<span><span class="co">#&gt; 410          survivied             survived</span></span>
+<span><span class="co">#&gt; 411        rechargable         rechargeable</span></span>
+<span><span class="co">#&gt; 412          mispelled           misspelled</span></span>
+<span><span class="co">#&gt; 413      transcripting         transcribing</span></span>
+<span><span class="co">#&gt; 414         descriibes            describes</span></span>
+<span><span class="co">#&gt; 415        conotations         connotations</span></span>
+<span><span class="co">#&gt; 416            visting             visiting</span></span>
+<span><span class="co">#&gt; 417          collonies             colonies</span></span>
+<span><span class="co">#&gt; 418           Godounov              Godunov</span></span>
+<span><span class="co">#&gt; 419           agreemnt            agreement</span></span>
+<span><span class="co">#&gt; 420           anwsered             answered</span></span>
+<span><span class="co">#&gt; 421         consistant           consistent</span></span>
+<span><span class="co">#&gt; 422      decomissioned       decommissioned</span></span>
+<span><span class="co">#&gt; 423           pessiary              pessary</span></span>
+<span><span class="co">#&gt; 424         parituclar           particular</span></span>
+<span><span class="co">#&gt; 425         gaurenteed           guaranteed</span></span>
+<span><span class="co">#&gt; 426      independendet          independent</span></span>
+<span><span class="co">#&gt; 427       manouverable         manoeuvrable</span></span>
+<span><span class="co">#&gt; 428         phenonmena            phenomena</span></span>
+<span><span class="co">#&gt; 429      accomadations       accommodations</span></span>
+<span><span class="co">#&gt; 430         rennovated            renovated</span></span>
+<span><span class="co">#&gt; 431           reffered             referred</span></span>
+<span><span class="co">#&gt; 432        accomodates         accommodates</span></span>
+<span><span class="co">#&gt; 433        disasterous           disastrous</span></span>
+<span><span class="co">#&gt; 434        unsurprized          unsurprised</span></span>
+<span><span class="co">#&gt; 435           siezures             seizures</span></span>
+<span><span class="co">#&gt; 436        appereances          appearances</span></span>
+<span><span class="co">#&gt; 437          repentent            repentant</span></span>
+<span><span class="co">#&gt; 438       controveries        controversies</span></span>
+<span><span class="co">#&gt; 439         octohedral           octahedral</span></span>
+<span><span class="co">#&gt; 440            dirived              derived</span></span>
+<span><span class="co">#&gt; 441            cervial               serval</span></span>
+<span><span class="co">#&gt; 442       inprisonment         imprisonment</span></span>
+<span><span class="co">#&gt; 443         aggregious            egregious</span></span>
+<span><span class="co">#&gt; 444        expiditions          expeditions</span></span>
+<span><span class="co">#&gt; 445        distruction          destruction</span></span>
+<span><span class="co">#&gt; 446           godesses            goddesses</span></span>
+<span><span class="co">#&gt; 447           thikning             thinking</span></span>
+<span><span class="co">#&gt; 448           alledges              alleges</span></span>
+<span><span class="co">#&gt; 449       unfortunatly        unfortunately</span></span>
+<span><span class="co">#&gt; 450         proffesion           profession</span></span>
+<span><span class="co">#&gt; 451           linnaena             linnaean</span></span>
+<span><span class="co">#&gt; 452             Guilia               Giulia</span></span>
+<span><span class="co">#&gt; 453         addressess            addresses</span></span>
+<span><span class="co">#&gt; 454       ressurection         resurrection</span></span>
+<span><span class="co">#&gt; 455            shoudln               should</span></span>
+<span><span class="co">#&gt; 456          imprioned           imprisoned</span></span>
+<span><span class="co">#&gt; 457         developped            developed</span></span>
+<span><span class="co">#&gt; 458              eyasr                 eyas</span></span>
+<span><span class="co">#&gt; 459        indictement           indictment</span></span>
+<span><span class="co">#&gt; 460         achivement          achievement</span></span>
+<span><span class="co">#&gt; 461          nessecary            necessary</span></span>
+<span><span class="co">#&gt; 462       negociations         negotiations</span></span>
+<span><span class="co">#&gt; 463       neigbourhood        neighbourhood</span></span>
+<span><span class="co">#&gt; 464          diphtongs           diphthongs</span></span>
+<span><span class="co">#&gt; 465          disatrous           disastrous</span></span>
+<span><span class="co">#&gt; 466        reminescent          reminiscent</span></span>
+<span><span class="co">#&gt; 467       reccommended          recommended</span></span>
+<span><span class="co">#&gt; 468            nucular              nuclear</span></span>
+<span><span class="co">#&gt; 469         provisonal          provisional</span></span>
+<span><span class="co">#&gt; 470           fimilies             families</span></span>
+<span><span class="co">#&gt; 471           sucessot            successor</span></span>
+<span><span class="co">#&gt; 472      carthographer         cartographer</span></span>
+<span><span class="co">#&gt; 473           milennia            millennia</span></span>
+<span><span class="co">#&gt; 474        critisising          criticising</span></span>
+<span><span class="co">#&gt; 475       speciallized          specialised</span></span>
+<span><span class="co">#&gt; 476            ocurred             occurred</span></span>
+<span><span class="co">#&gt; 477           annouced            announced</span></span>
+<span><span class="co">#&gt; 478          Europians            Europeans</span></span>
+<span><span class="co">#&gt; 479          competive          competitive</span></span>
+<span><span class="co">#&gt; 480           seceeded            succeeded</span></span>
+<span><span class="co">#&gt; 481       catergorized          categorized</span></span>
+<span><span class="co">#&gt; 482             reched              reached</span></span>
+<span><span class="co">#&gt; 483          gaurentee            guarantee</span></span>
+<span><span class="co">#&gt; 484        Napoleonian           Napoleonic</span></span>
+<span><span class="co">#&gt; 485         publisherr            publisher</span></span>
+<span><span class="co">#&gt; 486           portayed            portrayed</span></span>
+<span><span class="co">#&gt; 487          eventally           eventually</span></span>
+<span><span class="co">#&gt; 488          publihser            publisher</span></span>
+<span><span class="co">#&gt; 489         exapansion            expansion</span></span>
+<span><span class="co">#&gt; 490              endig               ending</span></span>
+<span><span class="co">#&gt; 491      dissappointed         disappointed</span></span>
+<span><span class="co">#&gt; 492           campains            campaigns</span></span>
+<span><span class="co">#&gt; 493             rigeur                rigor</span></span>
+<span><span class="co">#&gt; 494              konws                knows</span></span>
+<span><span class="co">#&gt; 495          massmedia           mass media</span></span>
+<span><span class="co">#&gt; 496           progroms              pogroms</span></span>
+<span><span class="co">#&gt; 497         dispencing           dispensing</span></span>
+<span><span class="co">#&gt; 498           iritated            irritated</span></span>
+<span><span class="co">#&gt; 499        comissioned         commissioned</span></span>
+<span><span class="co">#&gt; 500       traditionnal          traditional</span></span>
+<span><span class="co">#&gt; 501           Guiseppe             Giuseppe</span></span>
+<span><span class="co">#&gt; 502        acheivments         achievements</span></span>
+<span><span class="co">#&gt; 503           persuing             pursuing</span></span>
+<span><span class="co">#&gt; 504        autoctonous        autochthonous</span></span>
+<span><span class="co">#&gt; 505        spectaulars         spectaculars</span></span>
+<span><span class="co">#&gt; 506        artifically         artificially</span></span>
+<span><span class="co">#&gt; 507         comisioner         commissioner</span></span>
+<span><span class="co">#&gt; 508       infrantryman          infantryman</span></span>
+<span><span class="co">#&gt; 509          definance             defiance</span></span>
+<span><span class="co">#&gt; 510         deparments          departments</span></span>
+<span><span class="co">#&gt; 511         Morrisette           Morissette</span></span>
+<span><span class="co">#&gt; 512          deparment           department</span></span>
+<span><span class="co">#&gt; 513         oppononent             opponent</span></span>
+<span><span class="co">#&gt; 514      assasinations       assassinations</span></span>
+<span><span class="co">#&gt; 515           annoints              anoints</span></span>
+<span><span class="co">#&gt; 516           abudance            abundance</span></span>
+<span><span class="co">#&gt; 517         draughtman          draughtsman</span></span>
+<span><span class="co">#&gt; 518        refereneced           referenced</span></span>
+<span><span class="co">#&gt; 519         fisionable          fissionable</span></span>
+<span><span class="co">#&gt; 520       arrengements         arrangements</span></span>
+<span><span class="co">#&gt; 521       indpendently        independently</span></span>
+<span><span class="co">#&gt; 522          renedered                rende</span></span>
+<span><span class="co">#&gt; 523 histocompatability   histocompatibility</span></span>
+<span><span class="co">#&gt; 524           persuded            persuaded</span></span>
+<span><span class="co">#&gt; 525          moleclues            molecules</span></span>
+<span><span class="co">#&gt; 526      noncombatents        noncombatants</span></span>
+<span><span class="co">#&gt; 527         disapeared          disappeared</span></span>
+<span><span class="co">#&gt; 528            refrers               refers</span></span>
+<span><span class="co">#&gt; 529         surounding          surrounding</span></span>
+<span><span class="co">#&gt; 530           suprised            surprised</span></span>
+<span><span class="co">#&gt; 531           heridity             heredity</span></span>
+<span><span class="co">#&gt; 532           critized           criticized</span></span>
+<span><span class="co">#&gt; 533          stainlees            stainless</span></span>
+<span><span class="co">#&gt; 534        accquainted           acquainted</span></span>
+<span><span class="co">#&gt; 535        ubiquitious           ubiquitous</span></span>
+<span><span class="co">#&gt; 536            Januray              January</span></span>
+<span><span class="co">#&gt; 537        aggaravates           aggravates</span></span>
+<span><span class="co">#&gt; 538            wayword              wayward</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="performance">Performance<a class="anchor" aria-label="anchor" href="#performance"></a>
+</h2>
+<p><strong>fuzzystring</strong> uses a C++ implementation for row binding combined with a <code>data.table</code> backend for fast performance on large datasets. The package is optimized for:</p>
+<ul>
+<li>Efficient string distance calculations with prefiltering for Levenshtein-like metrics</li>
+<li>Memory-efficient joins using data.table’s reference semantics</li>
+<li>Type-safe column operations preserving factors, dates, and other attributes</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="advanced-usage">Advanced usage<a class="anchor" aria-label="anchor" href="#advanced-usage"></a>
+</h2>
+<div class="section level3">
+<h3 id="multiple-column-joins">Multiple column joins<a class="anchor" aria-label="anchor" href="#multiple-column-joins"></a>
+</h3>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">left_joined2</span> <span class="op">&lt;-</span> <span class="va">sub_misspellings</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_left_join</a></span><span class="op">(</span><span class="va">words</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>misspelling <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>, max_dist <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">left_joined2</span></span>
-<span></span>
-<span><span class="va">left_joined2</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">word</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;        misspelling       correct   word syllables</span></span>
-<span><span class="co">#&gt;             &lt;char&gt;        &lt;char&gt; &lt;char&gt;     &lt;num&gt;</span></span>
-<span><span class="co">#&gt;   1:     Sanhedrim     Sanhedrin   &lt;NA&gt;        NA</span></span>
-<span><span class="co">#&gt;   2: consicousness consciousness   &lt;NA&gt;        NA</span></span>
-<span><span class="co">#&gt;   3:    repubicans   republicans   &lt;NA&gt;        NA</span></span>
-<span><span class="co">#&gt;   4:     emmisions     emissions   &lt;NA&gt;        NA</span></span>
-<span><span class="co">#&gt;   5:   commonweath  commonwealth   &lt;NA&gt;        NA</span></span>
-<span><span class="co">#&gt;  ---                                             </span></span>
-<span><span class="co">#&gt; 282:    surounding   surrounding   &lt;NA&gt;        NA</span></span>
-<span><span class="co">#&gt; 283:     stainlees     stainless   &lt;NA&gt;        NA</span></span>
-<span><span class="co">#&gt; 284:   accquainted    acquainted   &lt;NA&gt;        NA</span></span>
-<span><span class="co">#&gt; 285:   ubiquitious    ubiquitous   &lt;NA&gt;        NA</span></span>
-<span><span class="co">#&gt; 286:       wayword       wayward   &lt;NA&gt;        NA</span></span></code></pre></div>
-<p>Most of the missing words here simply aren’t in our dictionary.</p>
-<p>You can try other distance thresholds, other dictionaries, and other distance metrics (see [stringdist-metrics] for more). This function is especially useful on a domain-specific dataset, such as free-form survey input that is likely to be close to one of a handful of responses.</p>
+<code class="sourceCode R"><span><span class="co"># Match on both string similarity and numeric proximity</span></span>
+<span><span class="fu"><a href="reference/fuzzystring_join.html">fuzzystring_inner_join</a></span><span class="op">(</span></span>
+<span>  <span class="va">x</span>, <span class="va">y</span>,</span>
+<span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span>, value <span class="op">=</span> <span class="st">"approx_value"</span><span class="op">)</span>,</span>
+<span>  match_fun <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    name <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="fu">stringdist</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/stringdist/man/stringdist.html" class="external-link">stringdist</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="fl">1</span>,</span>
+<span>    value <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">x</span> <span class="op">-</span> <span class="va">y</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">0.5</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="custom-distance-functions">Custom distance functions<a class="anchor" aria-label="anchor" href="#custom-distance-functions"></a>
+</h3>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Use custom matching logic</span></span>
+<span><span class="fu"><a href="reference/fstring_inner_join.html">fstring_inner_join</a></span><span class="op">(</span></span>
+<span>  <span class="va">x</span>, <span class="va">y</span>,</span>
+<span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"approx_name"</span><span class="op">)</span>,</span>
+<span>  match_fun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="co"># Your custom matching logic</span></span>
+<span>    <span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">your_distance_function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span></span>
+<span>    <span class="va">result</span> <span class="op">&lt;=</span> <span class="va">threshold</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
+<div class="section level2">
+<h2 id="related-packages">Related packages<a class="anchor" aria-label="anchor" href="#related-packages"></a>
+</h2>
+<ul>
+<li>
+<strong><a href="https://github.com/dgrtwo/fuzzyjoin" class="external-link">fuzzyjoin</a></strong>: Original fuzzy join implementation (dplyr-based)</li>
+<li>
+<strong><a href="https://github.com/markvanderloo/stringdist" class="external-link">stringdist</a></strong>: String distance metrics</li>
+<li>
+<strong><a href="https://rdatatable.gitlab.io/data.table/" class="external-link">data.table</a></strong>: High-performance data manipulation</li>
+</ul>
+<p><strong>fuzzystring</strong> builds on these great packages to provide a fast, data.table-native implementation with C++ optimization.</p>
+</div>
+<div class="section level2">
+<h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
+</h2>
+<p>Contributions are welcome! Please see <a href="CONTRIBUTING.html">CONTRIBUTING.md</a> for guidelines.</p>
+</div>
+<div class="section level2">
+<h2 id="code-of-conduct">Code of Conduct<a class="anchor" aria-label="anchor" href="#code-of-conduct"></a>
+</h2>
+<p>Please note that this project is released with a <a href="CODE_OF_CONDUCT.html">Contributor Code of Conduct</a>. By participating in this project you agree to abide by its terms.</p>
+</div>
+<div class="section level2">
+<h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
+</h2>
+<p>MIT © Paul E. Santos Andrade</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
