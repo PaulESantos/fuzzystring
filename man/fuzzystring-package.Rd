@@ -4,9 +4,9 @@
 \name{fuzzystring-package}
 \alias{fuzzystring}
 \alias{fuzzystring-package}
-\title{fuzzystring: Fuzzy String Joins for Data Frames}
+\title{fuzzystring: Fast Fuzzy String Joins for Data Frames}
 \description{
-Join data frames using approximate string matching. Provides inner/left/right/full/semi/anti joins powered by string distance metrics from 'stringdist', with a fast data.table backend and optional distance columns in the output.
+Perform fuzzy joins on data frames using approximate string matching. Implements all standard join types (inner, left, right, full, semi, anti) with support for multiple string distance metrics from the 'stringdist' package including Levenshtein, Damerau-Levenshtein, Jaro-Winkler, and Soundex. Features a high-performance 'data.table' backend with C++ row binding for efficient processing of large datasets. Ideal for matching misspellings, inconsistent labels, messy user input, or reconciling datasets with slight variations in identifiers. Optionally returns distance metrics alongside matched records.
 }
 \seealso{
 Useful links:

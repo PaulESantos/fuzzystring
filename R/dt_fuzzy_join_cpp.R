@@ -426,17 +426,20 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
     keep <- sort(unique(matches$x))
     keep <- keep[!is.na(keep)]
     res <- x_dt[keep]
-    return(if (data.table::is.data.table(x)) res else as.data.frame(res))
+    return(res)
+    #return(if (data.table::is.data.table(x)) res else as.data.frame(res))
   }
 
   if (mode == "anti") {
     if (nrow(matches) == 0L) {
-      return(if (data.table::is.data.table(x)) x_dt else as.data.frame(x_dt))
+      return(x_dt)
+      #return(if (data.table::is.data.table(x)) x_dt else as.data.frame(x_dt))
     }
     drop <- sort(unique(matches$x))
     drop <- drop[!is.na(drop)]
     res <- x_dt[-drop]
-    return(if (data.table::is.data.table(x)) res else as.data.frame(res))
+    return(res)
+    #return(if (data.table::is.data.table(x)) res else as.data.frame(res))
   }
 
   # --- preparar renombres y completar índices según modo ---------------------

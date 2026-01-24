@@ -12,7 +12,6 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 ```
-
 # fuzzystring
 
 <!-- badges: start -->
@@ -22,16 +21,25 @@ knitr::opts_chunk$set(
 [![Codecov test coverage](https://codecov.io/gh/PaulESantos/fuzzystring/graph/badge.svg)](https://app.codecov.io/gh/PaulESantos/fuzzystring)
 <!-- badges: end -->
 
-fuzzystring provides fast, data.table-backed fuzzy joins for data frames using
-string distance metrics from stringdist. Use it when you need to merge rows that
-are "close enough" (misspellings, inconsistent labels, user input, or messy IDs).
+**fuzzystring** provides fast, flexible fuzzy string joins for data frames using approximate string matching. Built on top of `data.table` and `stringdist`, it's designed for efficiently merging datasets where exact matches aren't possible due to misspellings, inconsistent formatting, or slight variations in text.
 
-Key features:
+## Why fuzzystring?
 
-- inner/left/right/full/semi/anti fuzzy joins
-- string distance methods from stringdist
-- optional distance column in the result
-- C++ row binding for performance on large joins
+Real-world data is messy. You might need to:
+
+- Match company names that are spelled slightly differently across datasets
+- Join customer records with typos or abbreviations
+- Reconcile product catalogs with inconsistent naming
+- Link survey responses to predefined categories despite spelling errors
+- Merge datasets where identifiers have been transcribed with errors
+
+**fuzzystring** makes these tasks straightforward with:
+
+- **All standard join types**: inner, left, right, full, semi, and anti joins
+- **Multiple distance metrics**: Levenshtein, Damerau-Levenshtein, Jaro-Winkler, Soundex, and more
+- **High performance**: C++ row binding and `data.table` backend for speed
+- **Optional distance column**: Track how close matches are
+- **Flexible matching**: Case-insensitive options and customizable distance thresholds
 
 ## Installation
 
@@ -46,142 +54,261 @@ remotes::install_github("PaulESantos/fuzzystring")
 
 ## Quick start
 
-``` r
+Here's a simple example matching diamond cuts with slight misspellings:
+
+```{r quickstart, eval=FALSE}
 library(fuzzystring)
 
-x <- data.frame(name = c("Idea", "Premiom", "Very Good"), id = 1:3)
-y <- data.frame(approx_name = c("Ideal", "Premium", "VeryGood"), grp = c("A", "B", "C"))
+# Your messy data
+x <- data.frame(
+  name = c("Idea", "Premiom", "Very Good"), 
+  id = 1:3
+)
 
+# Reference data
+y <- data.frame(
+  approx_name = c("Ideal", "Premium", "VeryGood"), 
+  grp = c("A", "B", "C")
+)
+
+# Fuzzy join with max distance of 2 edits
 fuzzystring_inner_join(
   x, y,
   by = c(name = "approx_name"),
   max_dist = 2,
   distance_col = "distance"
 )
+#>      name id approx_name grp distance
+#> 1:   Idea  1       Ideal   A        1
+#> 2: Premiom  2     Premium   B        2
 ```
 
-### Example of `fuzzystring_inner_join`: Correcting misspellings against a dictionary
+## Key features
 
-Often you find yourself with a set of words that you want to combine with a "dictionary"- it could be a literal dictionary (as in this case) or a domain-specific category system. But you want to allow for small differences in spelling or punctuation.
+### All join types supported
 
-The package includes a set of common misspellings
-([Wikipedia list](https://en.wikipedia.org/wiki/Wikipedia:Lists_of_common_misspellings/For_machines)):
+```{r joins, eval=FALSE}
+# Inner join - only matching rows
+fuzzystring_inner_join(x, y, by = c(name = "approx_name"), max_dist = 2)
 
-```{r}
+# Left join - all rows from x, matching rows from y
+fuzzystring_left_join(x, y, by = c(name = "approx_name"), max_dist = 2)
+
+# Right join - all rows from y, matching rows from x
+fuzzystring_right_join(x, y, by = c(name = "approx_name"), max_dist = 2)
+
+# Full join - all rows from both tables
+fuzzystring_full_join(x, y, by = c(name = "approx_name"), max_dist = 2)
+
+# Semi join - rows from x that have a match in y
+fuzzystring_semi_join(x, y, by = c(name = "approx_name"), max_dist = 2)
+
+# Anti join - rows from x that don't have a match in y
+fuzzystring_anti_join(x, y, by = c(name = "approx_name"), max_dist = 2)
+```
+
+### Multiple distance methods
+
+```{r methods, eval=FALSE}
+# Optimal String Alignment (default)
+fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "osa")
+
+# Damerau-Levenshtein
+fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "dl")
+
+# Jaro-Winkler (good for names)
+fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "jw")
+
+# Soundex (phonetic matching)
+fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "soundex")
+```
+
+### Case-insensitive matching
+
+```{r case, eval=FALSE}
+fuzzystring_inner_join(
+  x, y, 
+  by = c(name = "approx_name"),
+  ignore_case = TRUE,
+  max_dist = 1
+)
+```
+
+## Extended example: Correcting misspellings
+
+A common use case is matching misspelled words against a dictionary. The package includes a dataset of 4,500+ common misspellings from Wikipedia.
+
+```{r example_setup}
 library(tidyverse)
 library(fuzzystring)
-data(misspellings)
 
+# Load misspellings dataset
+data(misspellings)
 misspellings
 ```
 
-```{r words}
-# use the dictionary of words from the qdapDictionaries package,
-# which is based on the Nettalk corpus.
+Let's match these against a real dictionary:
+
+```{r dictionary}
+# Dictionary from qdapDictionaries package
 library(qdapDictionaries)
 words <- dplyr::as_tibble(DICTIONARY)
-
 words
 ```
 
-As an example, we'll pick 1000 of these words (you could try it on all of them though), and use `fuzzystring_inner_join` to join them against our dictionary.
+Sample 1,000 misspellings and find their matches:
 
-```{r sub_misspellings}
+```{r sample_and_join}
 set.seed(2016)
 sub_misspellings <- misspellings %>%
   sample_n(1000)
-```
 
-```{r joined, dependson = c("words", "sub_misspellings")}
+# Fuzzy join with max distance of 1
 joined <- sub_misspellings %>%
-  fuzzystring_inner_join(words, by = c(misspelling = "word"), max_dist = 1)
-```
+  fuzzystring_inner_join(
+    words, 
+    by = c(misspelling = "word"), 
+    max_dist = 1
+  )
 
-By default, `fuzzystring_inner_join` uses optimal string alignment (Damerau–Levenshtein distance), and we're setting a maximum distance of 1 for a join. Notice that they've been joined in cases where `misspelling` is close to (but not equal to) `word`:
-
-```{r dependson = "joined"}
 joined
 ```
 
-#### Classification accuracy
+### Analyzing match quality
 
-Note that there are some redundancies; words that could be multiple items in the dictionary. These end up with one row per "guess" in the output. How many words did we classify?
+Check how many misspellings we successfully matched:
 
-```{r dependson = "joined"}
+```{r accuracy}
+# Count unique misspellings matched
 joined %>%
   count(misspelling, correct)
-```
 
-So we found a match in the dictionary for about half of the misspellings. In how many of the ones we classified did we get at least one of our guesses right?
-
-```{r dependson = "joined"}
+# Calculate accuracy
 which_correct <- joined %>%
   group_by(misspelling, correct) %>%
-  summarize(guesses = n(), one_correct = any(correct == word))
+  summarize(
+    guesses = n(), 
+    one_correct = any(correct == word),
+    .groups = "drop"
+  )
 
-which_correct
-
-# percentage of guesses getting at least one right
+# Percentage getting at least one correct guess
 mean(which_correct$one_correct)
 
-# number uniquely correct (out of the original 1000)
+# Number with exactly one correct match
 sum(which_correct$guesses == 1 & which_correct$one_correct)
 ```
 
-Not bad.
+### Including distance metrics
 
-#### Reporting distance in the joined output
+Add a distance column to see how far apart the matches are:
 
-If you wanted to include the distance as a column in your output, you can use the `distance_col` argument. For example, we may be interested in how many words were *two* letters apart.
-
-```{r joined_dists, dependson = "sub_misspellings"}
+```{r with_distance}
 joined_dists <- sub_misspellings %>%
-  fuzzystring_inner_join(words, by = c(misspelling = "word"), max_dist = 2,
-                        distance_col = "distance")
+  fuzzystring_inner_join(
+    words, 
+    by = c(misspelling = "word"), 
+    max_dist = 2,
+    distance_col = "distance"
+  )
 
-joined_dists
-```
-
-Note the extra `distance` column, which in this case will always be less than or equal to 2. We could then pick the closest match for each, and examine how many of our closest matches were 1 or 2 away:
-
-```{r, dependson = "joined_dists"}
+# Find the closest match for each misspelling
 closest <- joined_dists %>%
   group_by(misspelling) %>%
   top_n(1, desc(distance)) %>%
   ungroup()
 
-closest
-
+# Distribution of distances
 closest %>%
   count(distance)
 ```
 
-#### Other joining functions
+### Using different join types
 
-Note that `fuzzystring_inner_join` is not the only function we can use. If we're interested in including the words that we *couldn't* classify, we could have use `fuzzystring_left_join`:
+**Left join** to keep unmatched words:
 
-```{r left_joined, dependson = "misspellings"}
+```{r left_join}
 left_joined <- sub_misspellings %>%
-  fuzzystring_left_join(words, by = c(misspelling = "word"), max_dist = 1)
+  fuzzystring_left_join(
+    words, 
+    by = c(misspelling = "word"), 
+    max_dist = 1
+  )
 
-left_joined
-
+# Show words we couldn't match
 left_joined %>%
   filter(is.na(word))
 ```
 
-(To get *just* the ones without matches immediately, we could have used `fuzzystring_anti_join`). If we increase our distance threshold, we'll increase the fraction with a correct guess, but also get more false positive guesses:
+**Anti join** to find only unmatched words:
 
-```{r left_joined2, dependson = "misspellings"}
-left_joined2 <- sub_misspellings %>%
-  fuzzystring_left_join(words, by = c(misspelling = "word"), max_dist = 2)
+```{r anti_join}
+unmatched <- sub_misspellings %>%
+  fuzzystring_anti_join(
+    words, 
+    by = c(misspelling = "word"), 
+    max_dist = 1
+  )
 
-left_joined2
-
-left_joined2 %>%
-  filter(is.na(word))
+unmatched
 ```
 
-Most of the missing words here simply aren't in our dictionary.
+## Performance
 
-You can try other distance thresholds, other dictionaries, and other distance metrics (see [stringdist-metrics] for more). This function is especially useful on a domain-specific dataset, such as free-form survey input that is likely to be close to one of a handful of responses.
+**fuzzystring** uses a C++ implementation for row binding combined with a `data.table` backend for fast performance on large datasets. The package is optimized for:
+
+- Efficient string distance calculations with prefiltering for Levenshtein-like metrics
+- Memory-efficient joins using data.table's reference semantics
+- Type-safe column operations preserving factors, dates, and other attributes
+
+## Advanced usage
+
+### Multiple column joins
+
+```{r multicol, eval=FALSE}
+# Match on both string similarity and numeric proximity
+fuzzystring_inner_join(
+  x, y,
+  by = c(name = "approx_name", value = "approx_value"),
+  match_fun = list(
+    name = function(x, y) stringdist::stringdist(x, y) <= 1,
+    value = function(x, y) abs(x - y) < 0.5
+  )
+)
+```
+
+### Custom distance functions
+
+```{r custom, eval=FALSE}
+# Use custom matching logic
+fstring_inner_join(
+  x, y,
+  by = c(name = "approx_name"),
+  match_fun = function(x, y) {
+    # Your custom matching logic
+    result <- your_distance_function(x, y)
+    result <= threshold
+  }
+)
+```
+
+## Related packages
+
+- **[fuzzyjoin](https://github.com/dgrtwo/fuzzyjoin)**: Original fuzzy join implementation (dplyr-based)
+- **[stringdist](https://github.com/markvanderloo/stringdist)**: String distance metrics
+- **[data.table](https://rdatatable.gitlab.io/data.table/)**: High-performance data manipulation
+
+**fuzzystring** builds on these great packages to provide a fast, data.table-native implementation with C++ optimization.
+
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](.github/CONTRIBUTING.md) for guidelines.
+
+## Code of Conduct
+
+Please note that this project is released with a [Contributor Code of Conduct](.github/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+
+## License
+
+MIT © Paul E. Santos Andrade
