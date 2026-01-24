@@ -24,3 +24,8 @@ Useful links:
 
 **Maintainer**: Paul E. Santos Andrade <paulefrens@gmail.com>
 ([ORCID](https://orcid.org/0000-0002-6635-0375))
+
+Other contributors:
+
+- David Robinson <admiral.david@gmail.com> (aut of fuzzyjoin)
+  \[contributor\]
