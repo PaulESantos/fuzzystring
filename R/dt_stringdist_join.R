@@ -1,20 +1,21 @@
-#' Join two tables based on fuzzy string matching of their columns (data.table)
+#' Join two tables based on fuzzy string matching
 #'
-#' Join two tables based on fuzzy string matching of their columns, using
-#' \code{stringdist::stringdist()} to compute distances and a data.table-based
-#' \code{dt_fuzzy_join()} backend.
+#' Uses \code{stringdist::stringdist()} to compute distances and a data.table-based
+#' backend to assemble the final result. This is the main user-facing entry point
+#' for fuzzy joins on strings.
 #'
 #' @param x A \code{data.frame} or \code{data.table}.
 #' @param y A \code{data.frame} or \code{data.table}.
-#' @param by Columns by which to join the two tables. See \code{\link{dt_fuzzy_join}}.
-#' @param max_dist Maximum distance to use for joining.
+#' @param by Columns by which to join the two tables. You can supply a character
+#'   vector of common names (e.g. \code{c("name")} ), or a named vector mapping
+#'   \code{x} to \code{y} (e.g. \code{c(name = "approx_name")}).
+#' @param max_dist Maximum distance to use for joining. Smaller values are stricter.
 #' @param ignore_case Logical; if \code{TRUE}, comparisons are case-insensitive.
 #' @param method Method for computing string distance, see
 #'   \code{?stringdist::stringdist} and the \code{stringdist} package vignettes.
 #' @param distance_col If not \code{NULL}, adds a column with this name containing
 #'   the computed distance for each matched pair (or \code{NA} for unmatched rows
 #'   in outer joins).
-#' @param use_cpp Use C++ code implementation for bind_by_rowid.
 #' @param mode One of \code{"inner"}, \code{"left"}, \code{"right"}, \code{"full"},
 #'   \code{"semi"}, or \code{"anti"}.
 #' @param ... Additional arguments passed to \code{\link[stringdist]{stringdist}}.
@@ -27,16 +28,28 @@
 #' prefilter is applied: if \code{abs(nchar(v1) - nchar(v2)) > max_dist}, the pair
 #' cannot match, so distance is not computed for that pair.
 #'
-#' @return A joined table (same container type as \code{x}). See \code{\link{dt_fuzzy_join}}.
+#' @return A joined table (same container type as \code{x}). See
+#'   \code{\link{fuzzystring_join_backend}} for details on output structure.
+#'
+#' @examples
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   d <- data.table::data.table(approximate_name = c("Idea", "Premiom"))
+#'   # Match diamonds$cut to d$approximate_name
+#'   res <- fuzzystring_inner_join(ggplot2::diamonds, d,
+#'     by = c(cut = "approximate_name"),
+#'     max_dist = 1
+#'   )
+#'   head(res)
+#' }
 #'
 #' @export
-dt_stringdist_join <- function(x, y, by = NULL, max_dist = 2,
+fuzzystring_join <- function(x, y, by = NULL, max_dist = 2,
                             method = c("osa", "lv", "dl", "hamming", "lcs", "qgram",
                                        "cosine", "jaccard", "jw", "soundex"),
                             mode = "inner",
                             ignore_case = FALSE,
                             distance_col = NULL,
-                            use_cpp = TRUE,...) {
+                            ...) {
   method <- match.arg(method)
 
   if (method == "soundex") {
@@ -94,51 +107,46 @@ dt_stringdist_join <- function(x, y, by = NULL, max_dist = 2,
     ret
   }
 
-  # Use C++ or R version
-  if (use_cpp) {
-    out <- dt_fuzzy_join_cpp(x, y, by = by, mode = mode, match_fun = match_fun)
-  } else {
-    out <- dt_fuzzy_join(x, y, by = by, mode = mode, match_fun = match_fun)
-  }
+  # Use C++ backend
+  out <- fuzzystring_join_backend(x, y, by = by, mode = mode, match_fun = match_fun)
 
   # asegura distancia en outer joins aunque no existan matches
-  dt_ensure_distance_col(out, distance_col, mode)
+  fst_ensure_distance_col(out, distance_col, mode)
 }
 
 
-#' @rdname dt_stringdist_join
+#' @rdname fuzzystring_join
 #' @export
-dt_stringdist_inner_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
-  dt_stringdist_join(x, y, by = by, mode = "inner", distance_col = distance_col, ...)
+fuzzystring_inner_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
+  fuzzystring_join(x, y, by = by, mode = "inner", distance_col = distance_col, ...)
 }
 
-#' @rdname dt_stringdist_join
+#' @rdname fuzzystring_join
 #' @export
-dt_stringdist_left_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
-  dt_stringdist_join(x, y, by = by, mode = "left", distance_col = distance_col, ...)
+fuzzystring_left_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
+  fuzzystring_join(x, y, by = by, mode = "left", distance_col = distance_col, ...)
 }
 
-#' @rdname dt_stringdist_join
+#' @rdname fuzzystring_join
 #' @export
-dt_stringdist_right_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
-  dt_stringdist_join(x, y, by = by, mode = "right", distance_col = distance_col, ...)
+fuzzystring_right_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
+  fuzzystring_join(x, y, by = by, mode = "right", distance_col = distance_col, ...)
 }
 
-#' @rdname dt_stringdist_join
+#' @rdname fuzzystring_join
 #' @export
-dt_stringdist_full_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
-  dt_stringdist_join(x, y, by = by, mode = "full", distance_col = distance_col, ...)
+fuzzystring_full_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
+  fuzzystring_join(x, y, by = by, mode = "full", distance_col = distance_col, ...)
 }
 
-#' @rdname dt_stringdist_join
+#' @rdname fuzzystring_join
 #' @export
-dt_stringdist_semi_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
-  dt_stringdist_join(x, y, by = by, mode = "semi", distance_col = distance_col, ...)
+fuzzystring_semi_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
+  fuzzystring_join(x, y, by = by, mode = "semi", distance_col = distance_col, ...)
 }
 
-#' @rdname dt_stringdist_join
+#' @rdname fuzzystring_join
 #' @export
-dt_stringdist_anti_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
-  dt_stringdist_join(x, y, by = by, mode = "anti", distance_col = distance_col, ...)
+fuzzystring_anti_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
+  fuzzystring_join(x, y, by = by, mode = "anti", distance_col = distance_col, ...)
 }
-

@@ -1,5 +1,6 @@
 #' @keywords internal
-#' @useDynLib fuzzydt, .registration = TRUE
+#' @useDynLib fuzzystring, .registration = TRUE
+#' @importFrom Rcpp evalCpp
 "_PACKAGE"
 
 ## usethis namespace: start

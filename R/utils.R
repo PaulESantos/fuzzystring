@@ -54,7 +54,7 @@
 #'
 #' @keywords internal
 #' @noRd
-dt_common_by <- function(by = NULL, x, y) {
+fst_common_by <- function(by = NULL, x, y) {
   if (is.list(by)) return(by)
 
   if (!is.null(by)) {
@@ -111,7 +111,7 @@ dt_common_by <- function(by = NULL, x, y) {
 #'
 #' @keywords internal
 #' @noRd
-dt_ensure_distance_col <- function(ret, distance_col, mode) {
+fst_ensure_distance_col <- function(ret, distance_col, mode) {
   if (!(mode %in% c("semi", "anti")) && !is.null(distance_col)) {
     if (is.null(ret[[distance_col]])) {
       val <- if (nrow(ret) == 0) numeric(0) else rep(NA_real_, nrow(ret))
@@ -145,7 +145,7 @@ dt_ensure_distance_col <- function(ret, distance_col, mode) {
 #'
 #' @keywords internal
 #' @noRd
-unrowwname <- function(x) {
+fst_unrowwname <- function(x) {
   if (data.table::is.data.table(x)) {
     data.table::setattr(x, "rownames", .set_row_names(nrow(x)))
   } else {

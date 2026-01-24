@@ -1,0 +1,2 @@
+# Makevars.win
+PKG_CPPFLAGS = -I../inst/include

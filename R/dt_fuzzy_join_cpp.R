@@ -1,16 +1,39 @@
-#' Fuzzy join two tables using data.table with C++ binding
+#' Fuzzy join backend using data.table + C++ row binding
 #'
-#' This is a C++-optimized version of \code{\link{dt_fuzzy_join}} that uses a
-#' compiled C++ function for the row binding operation, which can be significantly
-#' faster for large joins.
+#' Low-level engine used by \code{\link{fuzzystring_join}} and the C++-optimized
+#' fuzzy join helpers. It builds the match index with R/data.table and then
+#' assembles the result using a compiled C++ binder for speed.
 #'
-#' @inheritParams dt_fuzzy_join
-#' @return A joined table (same container type as \code{x}). See \code{\link{dt_fuzzy_join}}.
+#' @param match_fun A function used to match values. It must return a logical
+#'   vector (or a data.frame/data.table whose first column is logical) indicating
+#'   which pairs match. For multi-column joins, you may pass a list of functions
+#'   (one per column).
+#' @param x A \code{data.frame} or \code{data.table}.
+#' @param y A \code{data.frame} or \code{data.table}.
+#' @param by Columns by which to join the two tables. See
+#'   \code{\link{fuzzystring_join}}.
+#' @param multi_by A character vector of column names used for multi-column
+#'   matching when \code{multi_match_fun} is supplied.
+#' @param multi_match_fun A function that receives matrices of unique values for
+#'   \code{x} and \code{y} (rows correspond to unique combinations of \code{multi_by}).
+#'   It must return a logical vector (or a data.frame/data.table whose first column
+#'   is logical) indicating which rows match.
+#' @param index_match_fun A function that receives the joined columns from
+#'   \code{x} and \code{y} and returns a table with integer columns \code{x} and
+#'   \code{y} (1-based row indices).
+#' @param mode One of \code{"inner"}, \code{"left"}, \code{"right"}, \code{"full"},
+#'   \code{"semi"}, or \code{"anti"}.
+#' @param ... Additional arguments passed to the matching function(s).
+#'
+#' @return A joined table (same container type as \code{x}). See
+#'   \code{\link{fuzzystring_join}}.
 #'
 #' @details
-#' This function works identically to \code{\link{dt_fuzzy_join}}, but replaces
-#' the R-based \code{bind_by_rowid} function with a C++ implementation using Rcpp.
-#' This provides better performance, especially for large joins with many matches.
+#' This function works like \code{\link{fuzzystring_join}}, but replaces the
+#' R-based row binding with a C++ implementation. This provides better performance,
+#' especially for large joins with many matches. It is intended as a backend and
+#' does not compute distances itself; use \code{\link{fuzzystring_join}} for
+#' string-distance based matching.
 #'
 #' The C++ implementation handles:
 #' \itemize{
@@ -21,8 +44,10 @@
 #'   \item Column name conflicts with .x/.y suffixes
 #' }
 #'
-#' @export
-dt_fuzzy_join_cpp <- function(x, y, by = NULL, match_fun = NULL,
+#' @importFrom stats as.formula
+#' @importFrom data.table as.data.table is.data.table copy setorder setnames CJ rbindlist melt dcast .I .N :=
+#' @keywords internal
+fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
                               multi_by = NULL, multi_match_fun = NULL,
                               index_match_fun = NULL, mode = "inner", ...) {
 
@@ -234,7 +259,7 @@ dt_fuzzy_join_cpp <- function(x, y, by = NULL, match_fun = NULL,
   matches <- NULL
 
   if (!is.null(match_fun)) {
-    by2 <- dt_common_by(by, x_dt, y_dt)
+    by2 <- fst_common_by(by, x_dt, y_dt)
 
     if (is.list(match_fun)) {
       mf_list <- lapply(match_fun, as_mapper_dt)
@@ -333,7 +358,7 @@ dt_fuzzy_join_cpp <- function(x, y, by = NULL, match_fun = NULL,
 
   } else if (!is.null(multi_match_fun)) {
     mmf <- as_mapper_dt(multi_match_fun)
-    by2 <- dt_common_by(multi_by, x_dt, y_dt)
+    by2 <- fst_common_by(multi_by, x_dt, y_dt)
 
     ix <- group_indices_multicol(x_dt, by2$x)
     iy <- group_indices_multicol(y_dt, by2$y)
@@ -380,7 +405,7 @@ dt_fuzzy_join_cpp <- function(x, y, by = NULL, match_fun = NULL,
 
   } else {
     imf <- as_mapper_dt(index_match_fun)
-    by2 <- dt_common_by(multi_by, x_dt, y_dt)
+    by2 <- fst_common_by(multi_by, x_dt, y_dt)
 
     d1 <- x_dt[, ..by2$x]
     d2 <- y_dt[, ..by2$y]
@@ -455,13 +480,74 @@ dt_fuzzy_join_cpp <- function(x, y, by = NULL, match_fun = NULL,
   # --- construir resultado final usando C++ ---------------------------------
 
   ret <- bind_by_rowid_cpp_wrapper(x_dt, y_dt, matches, x_original, y_original, overlap)
-  ret <- dt_ensure_distance_col(ret, distance_col = NULL, mode = mode)
+  ret <- fst_ensure_distance_col(ret, distance_col = NULL, mode = mode)
 
   ret
+}
+# Wrappers ------------------------------------------------------------
 
- #if (x_is_dt) {
- #  ret
- #} else {
- #  as.data.frame(ret)
- #}
+#' Fuzzy inner join
+#'
+#' Convenience wrapper for \code{fuzzystring_join_backend(mode = "inner")}.
+#'
+#' @inheritParams fuzzystring_join_backend
+#' @return See \code{\link{fuzzystring_join_backend}}.
+#' @export
+fstring_inner_join <- function(x, y, by = NULL, match_fun, ...) {
+  fuzzystring_join_backend(x, y, by = by, match_fun = match_fun, mode = "inner", ...)
+}
+
+#' Fuzzy left join
+#'
+#' Convenience wrapper for \code{fuzzystring_join_backend(mode = "left")}.
+#'
+#' @inheritParams fuzzystring_join_backend
+#' @return See \code{\link{fuzzystring_join_backend}}.
+#' @export
+fstring_left_join <- function(x, y, by = NULL, match_fun, ...) {
+  fuzzystring_join_backend(x, y, by = by, match_fun = match_fun, mode = "left", ...)
+}
+
+#' Fuzzy right join
+#'
+#' Convenience wrapper for \code{fuzzystring_join_backend(mode = "right")}.
+#'
+#' @inheritParams fuzzystring_join_backend
+#' @return See \code{\link{fuzzystring_join_backend}}.
+#' @export
+fstring_right_join <- function(x, y, by = NULL, match_fun, ...) {
+  fuzzystring_join_backend(x, y, by = by, match_fun = match_fun, mode = "right", ...)
+}
+
+#' Fuzzy full join
+#'
+#' Convenience wrapper for \code{fuzzystring_join_backend(mode = "full")}.
+#'
+#' @inheritParams fuzzystring_join_backend
+#' @return See \code{\link{fuzzystring_join_backend}}.
+#' @export
+fstring_full_join <- function(x, y, by = NULL, match_fun, ...) {
+  fuzzystring_join_backend(x, y, by = by, match_fun = match_fun, mode = "full", ...)
+}
+
+#' Fuzzy semi join
+#'
+#' Convenience wrapper for \code{fuzzystring_join_backend(mode = "semi")}.
+#'
+#' @inheritParams fuzzystring_join_backend
+#' @return See \code{\link{fuzzystring_join_backend}}.
+#' @export
+fstring_semi_join <- function(x, y, by = NULL, match_fun, ...) {
+  fuzzystring_join_backend(x, y, by = by, match_fun = match_fun, mode = "semi", ...)
+}
+
+#' Fuzzy anti join
+#'
+#' Convenience wrapper for \code{fuzzystring_join_backend(mode = "anti")}.
+#'
+#' @inheritParams fuzzystring_join_backend
+#' @return See \code{\link{fuzzystring_join_backend}}.
+#' @export
+fstring_anti_join <- function(x, y, by = NULL, match_fun, ...) {
+  fuzzystring_join_backend(x, y, by = by, match_fun = match_fun, mode = "anti", ...)
 }
