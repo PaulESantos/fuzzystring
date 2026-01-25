@@ -37,7 +37,7 @@ template:
     navbar-light-hover-color: '#2F5F8F'
 opengraph:
   image:
-    src: man/figures/fuzzystring.svg
+    src: man/figures/fuzzystring.png
     alt: Fast Fuzzy String Joins for Data Frames
   twitter:
     creator: '@PaulEfrenSantos'
