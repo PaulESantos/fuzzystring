@@ -1,4 +1,4 @@
-# fuzzystring
+# fuzzystring [![](reference/figures/fuzzystring.svg)](https://paulesantos.github.io/fuzzystring/)
 
 **fuzzystring** provides fast, flexible fuzzy string joins for data
 frames using approximate string matching. Built on top of `data.table`
