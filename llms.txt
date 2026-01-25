@@ -1,4 +1,4 @@
-# fuzzystring [![](reference/figures/fuzzystring.svg)](https://paulesantos.github.io/fuzzystring/)
+# fuzzystring [![](reference/figures/fuzzystring.PNg)](https://paulesantos.github.io/fuzzystring/)
 
 **fuzzystring** provides fast, flexible fuzzy string joins for data
 frames using approximate string matching. Built on top of `data.table`
@@ -428,3 +428,9 @@ data.table-native implementation with C++ optimization.
 - [`misspellings`](https://paulesantos.github.io/fuzzystring/reference/misspellings.md)
   : A corpus of common misspellings, for examples and practice
 
+# Articles
+
+### All vignettes
+
+- [Getting Started with
+  fuzzystring](https://paulesantos.github.io/fuzzystring/articles/getting_started.md):
