@@ -1,0 +1,222 @@
+---
+title: "Getting Started with fuzzystring"
+author: "Paul Efren Santos Andrade"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with fuzzystring}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
+---
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(fuzzystring)
+```
+
+## Introduction
+
+**fuzzystring** provides fast, flexible fuzzy string joins for data frames using approximate string matching. Built on top of `data.table` and `stringdist`, it's designed for efficiently merging datasets where exact matches aren't possible due to misspellings, inconsistent formatting, or slight variations in text.
+
+## Installation
+
+You can install the development version of **fuzzystring** from GitHub:
+
+```r
+# Using pak (recommended)
+# pak::pak("PaulESantos/fuzzystring")
+
+# Or using remotes
+# remotes::install_github("PaulESantos/fuzzystring")
+```
+
+## Quick Start
+
+Here's a simple example matching diamond cuts with slight misspellings:
+
+```{r quick-start}
+# Your messy data
+x <- data.frame(
+  name = c("Idea", "Premiom", "Very Good"), 
+  id = 1:3
+)
+
+# Reference data
+y <- data.frame(
+  approx_name = c("Ideal", "Premium", "VeryGood"), 
+  grp = c("A", "B", "C")
+)
+
+# Fuzzy join with max distance of 2 edits
+fuzzystring_inner_join(
+  x, y,
+  by = c(name = "approx_name"),
+  max_dist = 2,
+  distance_col = "distance"
+)
+```
+
+## Key Features
+
+### All Join Types Supported
+
+**fuzzystring** supports all standard join types. Below is a small, reusable
+example dataset so you can compare the behavior of each join family.
+
+```{r join-datasets}
+x_join <- data.frame(
+  name = c("Idea", "Premiom", "Very Good", "Gooood"),
+  id = 1:4
+)
+
+y_join <- data.frame(
+  approx_name = c("Ideal", "Premium", "VeryGood", "Good"),
+  grp = c("A", "B", "C", "D")
+)
+```
+
+- `fuzzystring_inner_join()`: Only matching rows.
+- `fuzzystring_left_join()`: All rows from `x`, matching rows from `y`.
+- `fuzzystring_right_join()`: All rows from `y`, matching rows from `x`.
+- `fuzzystring_full_join()`: All rows from both tables.
+- `fuzzystring_semi_join()`: Rows from `x` that have a match in `y`.
+- `fuzzystring_anti_join()`: Rows from `x` that don't have a match in `y`.
+
+#### Inner join
+
+```{r join-inner, eval = TRUE}
+fuzzystring_inner_join(
+  x_join, y_join,
+  by = c(name = "approx_name"),
+  max_dist = 2,
+  distance_col = "distance"
+)
+```
+
+#### Left join
+
+```{r join-left, eval = TRUE}
+fuzzystring_left_join(
+  x_join, y_join,
+  by = c(name = "approx_name"),
+  max_dist = 2,
+  distance_col = "distance"
+)
+```
+
+#### Right join
+
+```{r join-right, eval = TRUE}
+fuzzystring_right_join(
+  x_join, y_join,
+  by = c(name = "approx_name"),
+  max_dist = 2,
+  distance_col = "distance"
+)
+```
+
+#### Full join
+
+```{r join-full, eval = TRUE}
+fuzzystring_full_join(
+  x_join, y_join,
+  by = c(name = "approx_name"),
+  max_dist = 2,
+  distance_col = "distance"
+)
+```
+
+#### Semi join (rows from `x` with a match in `y`)
+
+```{r join-semi, eval = TRUE}
+fuzzystring_semi_join(
+  x_join, y_join,
+  by = c(name = "approx_name"),
+  max_dist = 2
+)
+```
+
+#### Anti join (rows from `x` without a match in `y`)
+
+```{r join-anti, eval = TRUE}
+fuzzystring_anti_join(
+  x_join, y_join,
+  by = c(name = "approx_name"),
+  max_dist = 2
+)
+```
+
+#### Using the generic `fuzzystring_join()`
+
+If you prefer a single entry point, you can use `fuzzystring_join()` directly
+by specifying `mode`.
+
+```{r join-generic, eval = TRUE}
+fuzzystring_join(
+  x_join, y_join,
+  by = c(name = "approx_name"),
+  max_dist = 2,
+  mode = "left",
+  distance_col = "distance"
+)
+```
+
+### Multiple Distance Methods
+
+You can choose from various distance metrics provided by the `stringdist` package:
+
+```{r distance-methods, eval = FALSE}
+# Optimal String Alignment (default)
+fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "osa")
+
+# Damerau-Levenshtein
+fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "dl")
+
+# Jaro-Winkler (good for names)
+fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "jw")
+
+# Soundex (phonetic matching)
+fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "soundex")
+```
+
+### Case-Insensitive Matching
+
+Use `ignore_case = TRUE` to ignore capitalization:
+
+```{r ignore-case, eval = FALSE}
+fuzzystring_inner_join(
+  x, y, 
+  by = c(name = "approx_name"),
+  ignore_case = TRUE,
+  max_dist = 1
+)
+```
+
+## Advanced Usage
+
+### Multiple Column Joins
+
+You can match on multiple columns using different matching functions for each:
+
+```{r multi-column, eval = FALSE}
+fuzzystring_inner_join(
+  x, y,
+  by = c(name = "approx_name", value = "approx_value"),
+  match_fun = list(
+    name = function(x, y) stringdist::stringdist(x, y) <= 1,
+    value = function(x, y) abs(x - y) < 0.5
+  )
+)
+```
+
+## Performance
+
+**fuzzystring** uses a C++ implementation for row binding combined with a `data.table` backend for fast performance on large datasets. It is optimized for memory efficiency and type safety.

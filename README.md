@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# fuzzystring <a href="https://paulesantos.github.io/fuzzystring/"><img src="man/figures/fuzzystring.svg" align="right" height="140" /></a>
+# fuzzystring <a href="https://paulesantos.github.io/fuzzystring/"><img src="man/figures/fuzzystring.PNg" align="right" height="250" /></a>
 
 <!-- badges: start -->
 
