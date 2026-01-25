@@ -1,4 +1,59 @@
 url: https://paulesantos.github.io/fuzzystring/
+home:
+  title: Fast Fuzzy String Joins for Data Frames
+  description: |
+    Perform fuzzy joins on data frames using approximate string matching.
+    Implements all standard join types (inner, left, right, full, semi, anti) with
+    support for multiple string distance metrics from the 'stringdist' package
+    including Levenshtein, Damerau-Levenshtein, Jaro-Winkler, and Soundex. Features
+    a high-performance 'data.table' backend with C++ row binding for efficient
+    processing of large datasets. Ideal for matching misspellings, inconsistent
+    labels, messy user input, or reconciling datasets with slight variations in
+    identifiers. Optionally returns distance metrics alongside matched records.
+authors:
+  Paul E. Santos Andrade:
+    href: https://paulefrensa.rbind.io/
 template:
   bootstrap: 5
-
+  package: fuzzystring
+  assets: pkgdown
+  bslib:
+    font_scale: 1.0
+    base_font:
+      google: Jost
+    code_font:
+      google: Overpass Mono
+    heading_font:
+      google: Abhaya Libre
+    bg: '#FEFDF9'
+    fg: '#1A1A1A'
+    primary: '#355E3B'
+    secondary: '#C9A66B'
+    link-color: '#2F5F8F'
+    info: '#A3C2AD'
+    headings-color: '#4A3B2F'
+    navbar-bg: '#FEFDF9'
+    navbar-light-color: '#355E3B'
+    navbar-light-hover-color: '#2F5F8F'
+opengraph:
+  image:
+    src: man/figures/fuzzystring.svg
+    alt: Fast Fuzzy String Joins for Data Frames
+  twitter:
+    creator: '@PaulEfrenSantos'
+    card: summary
+navbar:
+  type: light
+  structure:
+    left:
+    - home
+    - intro
+    - reference
+    - articles
+    right: github
+  components:
+    intro:
+      text: Get started
+      href: articles/getting_started.html
+development:
+  mode: auto

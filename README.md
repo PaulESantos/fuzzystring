@@ -1,17 +1,17 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# fuzzystring
+# fuzzystring <a href="https://paulesantos.github.io/fuzzystring/"><img src="man/figures/fuzzystring.svg" align="right" height="250" /></a>
 
 <!-- badges: start -->
 
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/fuzzystring)](https://CRAN.R-project.org/package=fuzzystring)
 [![R-CMD-check](https://github.com/PaulESantos/fuzzystring/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PaulESantos/fuzzystring/actions/workflows/R-CMD-check.yaml)
-[![Codecov test
-coverage](https://codecov.io/gh/PaulESantos/fuzzystring/graph/badge.svg)](https://app.codecov.io/gh/PaulESantos/fuzzystring)
+[![Lifecycle:
+stable](https://img.shields.io/badge/lifecycle-stable-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+[![](http://cranlogs.r-pkg.org/badges/grand-total/fuzzystring?color=blue)](https://cran.r-project.org/package=fuzzystring)
+[![](http://cranlogs.r-pkg.org/badges/last-week/fuzzystring?color=blue)](https://cran.r-project.org/package=fuzzystring)
 <!-- badges: end -->
 
 **fuzzystring** provides fast, flexible fuzzy string joins for data
