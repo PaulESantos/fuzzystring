@@ -15,8 +15,7 @@ authors:
     href: https://paulefrensa.rbind.io/
 template:
   bootstrap: 5
-  package: fuzzystring
-  assets: pkgdown
+  assets: pkgdown/assets
   bslib:
     font_scale: 1.0
     base_font:
@@ -55,9 +54,6 @@ navbar:
     intro:
       text: Get started
       href: articles/getting_started.html
-pkgdown:
-  assets:
-    - extra.css
 development:
   mode: auto
 
