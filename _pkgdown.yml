@@ -55,6 +55,9 @@ navbar:
     intro:
       text: Get started
       href: articles/getting_started.html
+pkgdown:
+  assets:
+    - extra.css
 development:
   mode: auto
 

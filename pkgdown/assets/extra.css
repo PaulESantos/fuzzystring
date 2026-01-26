@@ -1,0 +1,20 @@
+/* Limita el tamaño del logo en la navbar */
+.navbar-brand img {
+  height: 40px;          /* o 50px, prueba valores entre 30–60 px */
+  width: auto;           /* mantiene proporciones */
+  max-height: 50px;      /* por si acaso */
+}
+
+/* Si el logo está en la página principal (hero/header) */
+.pkg-logo img,
+.index-logo img {
+  max-width: 200px;      /* o el tamaño que prefieras */
+  height: auto;
+}
+
+/* Opcional: si se estira mucho en móviles */
+@media (max-width: 768px) {
+  .navbar-brand img {
+    height: 35px;
+  }
+}
