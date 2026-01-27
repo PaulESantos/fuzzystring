@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 ```
-# fuzzystring <a href="https://paulesantos.github.io/fuzzystring/"><img src="man/figures/fuzzystring.PNg" align="right" height="250" /></a>
+# fuzzystring <a href="https://paulesantos.github.io/fuzzystring/"><img src="man/figures/fuzzystring.png" align="right" height="250" /></a>
 
 <!-- badges: start -->
 [![CRAN status](https://www.r-pkg.org/badges/version/fuzzystring)](https://CRAN.R-project.org/package=fuzzystring)
