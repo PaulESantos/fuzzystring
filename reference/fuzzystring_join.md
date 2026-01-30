@@ -99,6 +99,7 @@ match, so distance is not computed for that pair.
 ## Examples
 
 ``` r
+# \donttest{
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   d <- data.table::data.table(approximate_name = c("Idea", "Premiom"))
   # Match diamonds$cut to d$approximate_name
@@ -124,4 +125,5 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 #> 4:             Idea
 #> 5:          Premiom
 #> 6:             Idea
+# }
 ```

@@ -1,10 +1,10 @@
-# Fuzzy join backend using data.table + C++ row binding
+# Fuzzy join backend using 'data.table' + 'C++' row binding
 
 Low-level engine used by
 [`fuzzystring_join`](https://paulesantos.github.io/fuzzystring/reference/fuzzystring_join.md)
-and the C++-optimized fuzzy join helpers. It builds the match index with
-R/data.table and then assembles the result using a compiled C++ binder
-for speed.
+and the 'C++'-optimized fuzzy join helpers. It builds the match index
+with R 'data.table' and then assembles the result using a compiled 'C++'
+binder for speed.
 
 ## Usage
 
@@ -80,7 +80,7 @@ A joined table (same container type as `x`). See
 
 This function works like
 [`fuzzystring_join`](https://paulesantos.github.io/fuzzystring/reference/fuzzystring_join.md),
-but replaces the R-based row binding with a C++ implementation. This
+but replaces the R-based row binding with a 'C++' implementation. This
 provides better performance, especially for large joins with many
 matches. It is intended as a backend and does not compute distances
 itself; use

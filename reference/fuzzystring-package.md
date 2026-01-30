@@ -5,10 +5,11 @@ Implements all standard join types (inner, left, right, full, semi,
 anti) with support for multiple string distance metrics from the
 'stringdist' package including Levenshtein, Damerau-Levenshtein,
 Jaro-Winkler, and Soundex. Features a high-performance 'data.table'
-backend with C++ row binding for efficient processing of large datasets.
-Ideal for matching misspellings, inconsistent labels, messy user input,
-or reconciling datasets with slight variations in identifiers.
-Optionally returns distance metrics alongside matched records.
+backend with 'C++' row binding for efficient processing of large
+datasets. Ideal for matching misspellings, inconsistent labels, messy
+user input, or reconciling datasets with slight variations in
+identifiers. Optionally returns distance metrics alongside matched
+records.
 
 ## See also
 

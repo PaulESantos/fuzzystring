@@ -36,10 +36,12 @@ h <- read_html(u)
 misspellings <- h %>%
   html_nodes("pre") %>%
   html_text() %>%
-  readr::read_delim(col_names = c("misspelling", "correct"), delim = ">",
+  read_delim(col_names = c("misspelling", "correct"),
+                    delim = ">",
                     skip = 1) %>%
-  mutate(misspelling = str_sub(misspelling, 1, -2)) %>%
-  unnest(correct = str_split(correct, ", ")) %>%
+  mutate(misspelling = str_sub(misspelling,
+                                               1, -2)) |>
+  separate_rows(correct, sep = ", ") |>
   filter(Encoding(correct) != "UTF-8")
 } # }
 ```
