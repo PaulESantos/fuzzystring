@@ -78,6 +78,7 @@ prefilter is applied: if \code{abs(nchar(v1) - nchar(v2)) > max_dist}, the pair
 cannot match, so distance is not computed for that pair.
 }
 \examples{
+\donttest{
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   d <- data.table::data.table(approximate_name = c("Idea", "Premiom"))
   # Match diamonds$cut to d$approximate_name
@@ -86,6 +87,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     max_dist = 1
   )
   head(res)
+}
 }
 
 }

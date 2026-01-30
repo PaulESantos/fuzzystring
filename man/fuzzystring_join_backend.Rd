@@ -2,7 +2,7 @@
 % Please edit documentation in R/dt_fuzzy_join_cpp.R
 \name{fuzzystring_join_backend}
 \alias{fuzzystring_join_backend}
-\title{Fuzzy join backend using data.table + C++ row binding}
+\title{Fuzzy join backend using 'data.table' + 'C++' row binding}
 \usage{
 fuzzystring_join_backend(
   x,
@@ -51,13 +51,13 @@ A joined table (same container type as \code{x}). See
 \code{\link{fuzzystring_join}}.
 }
 \description{
-Low-level engine used by \code{\link{fuzzystring_join}} and the C++-optimized
-fuzzy join helpers. It builds the match index with R/data.table and then
-assembles the result using a compiled C++ binder for speed.
+Low-level engine used by \code{\link{fuzzystring_join}} and the 'C++'-optimized
+fuzzy join helpers. It builds the match index with R 'data.table' and then
+assembles the result using a compiled 'C++' binder for speed.
 }
 \details{
 This function works like \code{\link{fuzzystring_join}}, but replaces the
-R-based row binding with a C++ implementation. This provides better performance,
+R-based row binding with a 'C++' implementation. This provides better performance,
 especially for large joins with many matches. It is intended as a backend and
 does not compute distances itself; use \code{\link{fuzzystring_join}} for
 string-distance based matching.

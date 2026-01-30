@@ -32,6 +32,7 @@
 #'   \code{\link{fuzzystring_join_backend}} for details on output structure.
 #'
 #' @examples
+#' \donttest{
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
 #'   d <- data.table::data.table(approximate_name = c("Idea", "Premiom"))
 #'   # Match diamonds$cut to d$approximate_name
@@ -40,6 +41,7 @@
 #'     max_dist = 1
 #'   )
 #'   head(res)
+#' }
 #' }
 #'
 #' @export

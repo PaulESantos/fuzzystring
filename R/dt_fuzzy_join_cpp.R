@@ -1,8 +1,8 @@
-#' Fuzzy join backend using data.table + C++ row binding
+#' Fuzzy join backend using 'data.table' + 'C++' row binding
 #'
-#' Low-level engine used by \code{\link{fuzzystring_join}} and the C++-optimized
-#' fuzzy join helpers. It builds the match index with R/data.table and then
-#' assembles the result using a compiled C++ binder for speed.
+#' Low-level engine used by \code{\link{fuzzystring_join}} and the 'C++'-optimized
+#' fuzzy join helpers. It builds the match index with R 'data.table' and then
+#' assembles the result using a compiled 'C++' binder for speed.
 #'
 #' @param match_fun A function used to match values. It must return a logical
 #'   vector (or a data.frame/data.table whose first column is logical) indicating
@@ -30,7 +30,7 @@
 #'
 #' @details
 #' This function works like \code{\link{fuzzystring_join}}, but replaces the
-#' R-based row binding with a C++ implementation. This provides better performance,
+#' R-based row binding with a 'C++' implementation. This provides better performance,
 #' especially for large joins with many matches. It is intended as a backend and
 #' does not compute distances itself; use \code{\link{fuzzystring_join}} for
 #' string-distance based matching.
