@@ -23,10 +23,23 @@ An object of class `tbl_df` (inherits from `tbl`, `data.frame`) with
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
+# \donttest{
 library(rvest)
 library(readr)
+#> 
+#> Attaching package: ‘readr’
+#> The following object is masked from ‘package:rvest’:
+#> 
+#>     guess_encoding
 library(dplyr)
+#> 
+#> Attaching package: ‘dplyr’
+#> The following objects are masked from ‘package:stats’:
+#> 
+#>     filter, lag
+#> The following objects are masked from ‘package:base’:
+#> 
+#>     intersect, setdiff, setequal, union
 library(stringr)
 library(tidyr)
 
@@ -43,5 +56,22 @@ misspellings <- h %>%
                                                1, -2)) |>
   separate_rows(correct, sep = ", ") |>
   filter(Encoding(correct) != "UTF-8")
-} # }
+#> Warning: The `file` argument of `vroom()` must use `I()` for literal data as of vroom
+#> 1.5.0.
+#>   
+#>   # Bad:
+#>   vroom("X,Y\n1.5,2.3\n")
+#>   
+#>   # Good:
+#>   vroom(I("X,Y\n1.5,2.3\n"))
+#> ℹ The deprecated feature was likely used in the readr package.
+#>   Please report the issue at <https://github.com/tidyverse/readr/issues>.
+#> Rows: 4309 Columns: 2
+#> ── Column specification ────────────────────────────────────────────────────────
+#> Delimiter: ">"
+#> chr (2): misspelling, correct
+#> 
+#> ℹ Use `spec()` to retrieve the full column specification for this data.
+#> ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+# }
 ```
