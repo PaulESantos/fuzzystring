@@ -21,7 +21,7 @@ dataset from Wikipedia, see the example code below.
 }
 \examples{
 
-\dontrun{
+\donttest{
 library(rvest)
 library(readr)
 library(dplyr)
