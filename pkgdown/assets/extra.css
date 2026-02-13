@@ -1,66 +1,75 @@
 /* === Logo sizing and responsive design === */
 
-/* Navbar brand logo - fixed small size */
-.navbar-brand img {
-  height: 40px !important;
-  width: auto !important;
-  max-height: 50px !important;
-}
-
-/* Logo in home page (from README) - OVERRIDE inline styles */
-.main img[src*="fuzzystring.png"],
-.index img[src*="fuzzystring.png"],
-.pkg-logo img,
-.index-logo img {
-  width: 200px !important;
-  height: auto !important;
-  max-width: 200px !important;
-  max-height: auto !important;
-  display: inline-block !important;
-}
-
-/* Generic fuzzystring logo - ensure correct proportions everywhere */
+/* CRITICAL: Override ALL fuzzystring.png images with proper dimensions */
 img[src*="fuzzystring.png"] {
   width: auto !important;
   height: auto !important;
   max-width: 200px !important;
+  max-height: 400px !important;
+  display: block !important;
 }
 
-/* Specifically target logo in right-aligned position (from README.md) */
-a[href*="paulesantos.github.io/fuzzystring"] img[src*="fuzzystring.png"] {
+/* Navbar brand logo - smaller size for header */
+.navbar-brand img {
+  height: 40px !important;
+  width: auto !important;
+  max-height: 50px !important;
+  display: inline !important;
+}
+
+/* Logo in page content - constrain to reasonable width */
+.page-header img[src*="fuzzystring.png"],
+.section level1 img[src*="fuzzystring.png"],
+h1 img[src*="fuzzystring.png"],
+.main img[src*="fuzzystring.png"] {
   width: auto !important;
   height: auto !important;
-  max-width: 180px !important;
+  max-width: 200px !important;
+  float: right !important;
+  margin-left: 1rem !important;
 }
 
-/* Mobile responsive adjustments - Tablet */
+/* Ensure proper aspect ratio is maintained */
+img[src$="fuzzystring.png"] {
+  aspect-ratio: auto !important;
+}
+
+/* Desktop - Large screens */
+@media (min-width: 1200px) {
+  img[src*="fuzzystring.png"]:not(.navbar-brand img) {
+    max-width: 220px !important;
+  }
+}
+
+/* Tablet - Medium screens */
 @media (max-width: 768px) {
   .navbar-brand img {
     height: 35px !important;
   }
 
-  .main img[src*="fuzzystring.png"],
-  .index img[src*="fuzzystring.png"],
-  img[src*="fuzzystring.png"] {
+  img[src*="fuzzystring.png"]:not(.navbar-brand img) {
     max-width: 150px !important;
-    height: auto !important;
+    float: none !important;
+    display: block !important;
+    margin: 1rem auto !important;
   }
 
-  a[href*="paulesantos.github.io/fuzzystring"] img[src*="fuzzystring.png"] {
+  h1 img[src*="fuzzystring.png"] {
+    float: right !important;
     max-width: 120px !important;
+    margin-left: 0.5rem !important;
   }
 }
 
-/* Small devices - phones */
+/* Mobile - Small screens */
 @media (max-width: 480px) {
-  .main img[src*="fuzzystring.png"],
-  .index img[src*="fuzzystring.png"],
-  img[src*="fuzzystring.png"] {
-    max-width: 120px !important;
+  img[src*="fuzzystring.png"]:not(.navbar-brand img) {
+    max-width: 100px !important;
     height: auto !important;
   }
 
-  a[href*="paulesantos.github.io/fuzzystring"] img[src*="fuzzystring.png"] {
-    max-width: 100px !important;
+  h1 img[src*="fuzzystring.png"] {
+    max-width: 80px !important;
+    margin-left: 0.25rem !important;
   }
 }
