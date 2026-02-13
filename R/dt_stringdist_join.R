@@ -58,6 +58,16 @@ fuzzystring_join <- function(x, y, by = NULL, max_dist = 2,
     max_dist <- 0.5
   }
 
+  # Validate max_dist
+  if (!is.numeric(max_dist) || length(max_dist) != 1) {
+    stop("max_dist must be a single numeric value", call. = FALSE)
+  }
+  if (max_dist < 0) {
+    stop("max_dist must be non-negative", call. = FALSE)
+  }
+
+
+
   # match_fun debe ser vectorizada y eficiente.
   match_fun <- function(v1, v2) {
     # Coerce to character early (handles factors, ordered, etc.)
