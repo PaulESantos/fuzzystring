@@ -1,20 +1,66 @@
-/* Limita el tamaño del logo en la navbar */
+/* === Logo sizing and responsive design === */
+
+/* Navbar brand logo - fixed small size */
 .navbar-brand img {
-  height: 40px;          /* o 50px, prueba valores entre 30–60 px */
-  width: auto;           /* mantiene proporciones */
-  max-height: 50px;      /* por si acaso */
+  height: 40px !important;
+  width: auto !important;
+  max-height: 50px !important;
 }
 
-/* Si el logo está en la página principal (hero/header) */
+/* Logo in home page (from README) - OVERRIDE inline styles */
+.main img[src*="fuzzystring.png"],
+.index img[src*="fuzzystring.png"],
 .pkg-logo img,
 .index-logo img {
-  max-width: 200px;      /* o el tamaño que prefieras */
-  height: auto;
+  width: 200px !important;
+  height: auto !important;
+  max-width: 200px !important;
+  max-height: auto !important;
+  display: inline-block !important;
 }
 
-/* Opcional: si se estira mucho en móviles */
+/* Generic fuzzystring logo - ensure correct proportions everywhere */
+img[src*="fuzzystring.png"] {
+  width: auto !important;
+  height: auto !important;
+  max-width: 200px !important;
+}
+
+/* Specifically target logo in right-aligned position (from README.md) */
+a[href*="paulesantos.github.io/fuzzystring"] img[src*="fuzzystring.png"] {
+  width: auto !important;
+  height: auto !important;
+  max-width: 180px !important;
+}
+
+/* Mobile responsive adjustments - Tablet */
 @media (max-width: 768px) {
   .navbar-brand img {
-    height: 35px;
+    height: 35px !important;
+  }
+
+  .main img[src*="fuzzystring.png"],
+  .index img[src*="fuzzystring.png"],
+  img[src*="fuzzystring.png"] {
+    max-width: 150px !important;
+    height: auto !important;
+  }
+
+  a[href*="paulesantos.github.io/fuzzystring"] img[src*="fuzzystring.png"] {
+    max-width: 120px !important;
+  }
+}
+
+/* Small devices - phones */
+@media (max-width: 480px) {
+  .main img[src*="fuzzystring.png"],
+  .index img[src*="fuzzystring.png"],
+  img[src*="fuzzystring.png"] {
+    max-width: 120px !important;
+    height: auto !important;
+  }
+
+  a[href*="paulesantos.github.io/fuzzystring"] img[src*="fuzzystring.png"] {
+    max-width: 100px !important;
   }
 }
