@@ -73,3 +73,42 @@ img[src$="fuzzystring.png"] {
     margin-left: 0.25rem !important;
   }
 }
+
+/* === Dev Status section styling === */
+/* Dev status badges appear in the right sidebar */
+
+.dev-status-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.dev-status-section h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #666;
+  margin: 0 0 0.75rem 0;
+  padding: 0;
+  text-transform: capitalize;
+}
+
+/* Badge container */
+.dev-status-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dev-status-badges a {
+  display: inline-block;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.dev-status-badges img {
+  height: 20px;
+  width: auto;
+  vertical-align: middle;
+  display: inline-block;
+}

@@ -32,6 +32,8 @@ authors:
 template:
   bootstrap: 5
   assets: pkgdown/assets
+  includes:
+    after_body: pkgdown/templates/after_body.html
   bslib:
     font_scale: 1.0
     base_font:
