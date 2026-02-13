@@ -10,6 +10,22 @@ home:
     processing of large datasets. Ideal for matching misspellings, inconsistent
     labels, messy user input, or reconciling datasets with slight variations in
     identifiers. Optionally returns distance metrics alongside matched records.
+  badges:
+  - text: 'CRAN status'
+    href: 'https://CRAN.R-project.org/package=fuzzystring'
+    src: 'https://www.r-pkg.org/badges/version/fuzzystring'
+  - text: 'R-CMD-check'
+    href: 'https://github.com/PaulESantos/fuzzystring/actions/workflows/R-CMD-check.yaml'
+    src: 'https://github.com/PaulESantos/fuzzystring/actions/workflows/R-CMD-check.yaml/badge.svg'
+  - text: 'Lifecycle: stable'
+    href: 'https://lifecycle.r-lib.org/articles/stages.html'
+    src: 'https://img.shields.io/badge/lifecycle-stable-blue.svg'
+  - text: 'Total downloads'
+    href: 'https://cran.r-project.org/package=fuzzystring'
+    src: 'http://cranlogs.r-pkg.org/badges/grand-total/fuzzystring?color=blue'
+  - text: 'Last week downloads'
+    href: 'https://cran.r-project.org/package=fuzzystring'
+    src: 'http://cranlogs.r-pkg.org/badges/last-week/fuzzystring?color=blue'
 authors:
   Paul E. Santos Andrade:
     href: https://paulefrensa.rbind.io/
