@@ -72,6 +72,5 @@ navbar:
     intro:
       text: Get started
       href: articles/getting_started.html
-development:
-  mode: auto
+
 
