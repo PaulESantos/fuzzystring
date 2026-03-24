@@ -56,16 +56,14 @@ misspellings <- h %>%
                                                1, -2)) |>
   separate_rows(correct, sep = ", ") |>
   filter(Encoding(correct) != "UTF-8")
-#> Warning: The `file` argument of `vroom()` must use `I()` for literal data as of vroom
-#> 1.5.0.
+#> Warning: The `file` argument of `read_delim()` should use `I()` for literal data as of
+#> readr 2.2.0.
 #>   
-#>   # Bad:
-#>   vroom("X,Y\n1.5,2.3\n")
+#>   # Bad (for example):
+#>   read_csv("x,y\n1,2")
 #>   
 #>   # Good:
-#>   vroom(I("X,Y\n1.5,2.3\n"))
-#> ℹ The deprecated feature was likely used in the readr package.
-#>   Please report the issue at <https://github.com/tidyverse/readr/issues>.
+#>   read_csv(I("x,y\n1,2"))
 #> Rows: 4309 Columns: 2
 #> ── Column specification ────────────────────────────────────────────────────────
 #> Delimiter: ">"
