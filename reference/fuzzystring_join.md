@@ -109,21 +109,12 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
   )
   head(res)
 }
-#>    carat     cut color clarity depth table price     x     y     z
-#>    <num>   <ord> <ord>   <ord> <num> <num> <int> <num> <num> <num>
-#> 1:  0.23   Ideal     E     SI2  61.5    55   326  3.95  3.98  2.43
-#> 2:  0.21 Premium     E     SI1  59.8    61   326  3.89  3.84  2.31
-#> 3:  0.29 Premium     I     VS2  62.4    58   334  4.20  4.23  2.63
-#> 4:  0.23   Ideal     J     VS1  62.8    56   340  3.93  3.90  2.46
-#> 5:  0.22 Premium     F     SI1  60.4    61   342  3.88  3.84  2.33
-#> 6:  0.31   Ideal     J     SI2  62.2    54   344  4.35  4.37  2.71
-#>    approximate_name
-#>              <char>
-#> 1:             Idea
-#> 2:          Premiom
-#> 3:          Premiom
-#> 4:             Idea
-#> 5:          Premiom
-#> 6:             Idea
+#>   carat     cut color clarity depth table price    x    y    z approximate_name
+#> 1  0.23   Ideal     E     SI2  61.5    55   326 3.95 3.98 2.43             Idea
+#> 2  0.21 Premium     E     SI1  59.8    61   326 3.89 3.84 2.31          Premiom
+#> 3  0.29 Premium     I     VS2  62.4    58   334 4.20 4.23 2.63          Premiom
+#> 4  0.23   Ideal     J     VS1  62.8    56   340 3.93 3.90 2.46             Idea
+#> 5  0.22 Premium     F     SI1  60.4    61   342 3.88 3.84 2.33          Premiom
+#> 6  0.31   Ideal     J     SI2  62.2    54   344 4.35 4.37 2.71             Idea
 # }
 ```

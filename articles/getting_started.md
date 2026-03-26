@@ -48,11 +48,10 @@ fuzzystring_inner_join(
   max_dist = 2,
   distance_col = "distance"
 )
-#>         name    id approx_name    grp distance
-#>       <char> <int>      <char> <char>    <num>
-#> 1:      Idea     1       Ideal      A        1
-#> 2:   Premiom     2     Premium      B        1
-#> 3: Very Good     3    VeryGood      C        1
+#>        name id approx_name grp distance
+#> 1      Idea  1       Ideal   A        1
+#> 2   Premiom  2     Premium   B        1
+#> 3 Very Good  3    VeryGood   C        1
 ```
 
 ## Key Features
@@ -97,12 +96,11 @@ fuzzystring_inner_join(
   max_dist = 2,
   distance_col = "distance"
 )
-#>         name    id approx_name    grp distance
-#>       <char> <int>      <char> <char>    <num>
-#> 1:      Idea     1       Ideal      A        1
-#> 2:   Premiom     2     Premium      B        1
-#> 3: Very Good     3    VeryGood      C        1
-#> 4:    Gooood     4        Good      D        2
+#>        name id approx_name grp distance
+#> 1      Idea  1       Ideal   A        1
+#> 2   Premiom  2     Premium   B        1
+#> 3 Very Good  3    VeryGood   C        1
+#> 4    Gooood  4        Good   D        2
 ```
 
 #### Left join
@@ -114,12 +112,11 @@ fuzzystring_left_join(
   max_dist = 2,
   distance_col = "distance"
 )
-#>         name    id approx_name    grp distance
-#>       <char> <int>      <char> <char>    <num>
-#> 1:      Idea     1       Ideal      A        1
-#> 2:   Premiom     2     Premium      B        1
-#> 3: Very Good     3    VeryGood      C        1
-#> 4:    Gooood     4        Good      D        2
+#>        name id approx_name grp distance
+#> 1      Idea  1       Ideal   A        1
+#> 2   Premiom  2     Premium   B        1
+#> 3 Very Good  3    VeryGood   C        1
+#> 4    Gooood  4        Good   D        2
 ```
 
 #### Right join
@@ -131,12 +128,11 @@ fuzzystring_right_join(
   max_dist = 2,
   distance_col = "distance"
 )
-#>         name    id approx_name    grp distance
-#>       <char> <int>      <char> <char>    <num>
-#> 1:      Idea     1       Ideal      A        1
-#> 2:   Premiom     2     Premium      B        1
-#> 3: Very Good     3    VeryGood      C        1
-#> 4:    Gooood     4        Good      D        2
+#>        name id approx_name grp distance
+#> 1      Idea  1       Ideal   A        1
+#> 2   Premiom  2     Premium   B        1
+#> 3 Very Good  3    VeryGood   C        1
+#> 4    Gooood  4        Good   D        2
 ```
 
 #### Full join
@@ -148,12 +144,11 @@ fuzzystring_full_join(
   max_dist = 2,
   distance_col = "distance"
 )
-#>         name    id approx_name    grp distance
-#>       <char> <int>      <char> <char>    <num>
-#> 1:      Idea     1       Ideal      A        1
-#> 2:   Premiom     2     Premium      B        1
-#> 3: Very Good     3    VeryGood      C        1
-#> 4:    Gooood     4        Good      D        2
+#>        name id approx_name grp distance
+#> 1      Idea  1       Ideal   A        1
+#> 2   Premiom  2     Premium   B        1
+#> 3 Very Good  3    VeryGood   C        1
+#> 4    Gooood  4        Good   D        2
 ```
 
 #### Semi join (rows from `x` with a match in `y`)
@@ -164,12 +159,11 @@ fuzzystring_semi_join(
   by = c(name = "approx_name"),
   max_dist = 2
 )
-#>         name    id
-#>       <char> <int>
-#> 1:      Idea     1
-#> 2:   Premiom     2
-#> 3: Very Good     3
-#> 4:    Gooood     4
+#>        name id
+#> 1      Idea  1
+#> 2   Premiom  2
+#> 3 Very Good  3
+#> 4    Gooood  4
 ```
 
 #### Anti join (rows from `x` without a match in `y`)
@@ -180,7 +174,8 @@ fuzzystring_anti_join(
   by = c(name = "approx_name"),
   max_dist = 2
 )
-#> Empty data.table (0 rows and 2 cols): name,id
+#> [1] name id  
+#> <0 rows> (or 0-length row.names)
 ```
 
 #### Using the generic `fuzzystring_join()`
@@ -197,12 +192,11 @@ fuzzystring_join(
   mode = "left",
   distance_col = "distance"
 )
-#>         name    id approx_name    grp distance
-#>       <char> <int>      <char> <char>    <num>
-#> 1:      Idea     1       Ideal      A        1
-#> 2:   Premiom     2     Premium      B        1
-#> 3: Very Good     3    VeryGood      C        1
-#> 4:    Gooood     4        Good      D        2
+#>        name id approx_name grp distance
+#> 1      Idea  1       Ideal   A        1
+#> 2   Premiom  2     Premium   B        1
+#> 3 Very Good  3    VeryGood   C        1
+#> 4    Gooood  4        Good   D        2
 ```
 
 ### Multiple Distance Methods
