@@ -2,9 +2,9 @@
 
 Uses
 [`stringdist::stringdist()`](https://rdrr.io/pkg/stringdist/man/stringdist.html)
-to compute distances and a data.table-based backend to assemble the
-final result. This is the main user-facing entry point for fuzzy joins
-on strings.
+to compute distances and a `data.table`-orchestrated backend with
+compiled 'C++' assembly to produce the final result. This is the main
+user-facing entry point for fuzzy joins on strings.
 
 ## Usage
 
@@ -92,9 +92,15 @@ for details on output structure.
 If `method = "soundex"`, `max_dist` is automatically set to 0.5, since
 Soundex distance is 0 (match) or 1 (no match).
 
+For single-column joins, fuzzystring uses adaptive candidate planning
+before calling
+[`stringdist::stringdist()`](https://rdrr.io/pkg/stringdist/man/stringdist.html).
 For Levenshtein-like methods (`"osa"`, `"lv"`, `"dl"`), a fast prefilter
 is applied: if `abs(nchar(v1) - nchar(v2)) > max_dist`, the pair cannot
-match, so distance is not computed for that pair.
+match, so distance is not computed for that pair. For low-duplication
+workloads, the planner can also evaluate larger dense blocks of unique
+values to reduce orchestration overhead while preserving the same
+matching semantics.
 
 ## Examples
 

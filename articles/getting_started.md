@@ -8,9 +8,10 @@ library(fuzzystring)
 
 **fuzzystring** provides fast, flexible fuzzy string joins for data
 frames using approximate string matching. Built on top of `data.table`
-and `stringdist`, it’s designed for efficiently merging datasets where
-exact matches aren’t possible due to misspellings, inconsistent
-formatting, or slight variations in text.
+and `stringdist`, it uses a broader compiled C++ backend for row
+expansion, row binding, and result assembly, while adaptive candidate
+planning reduces unnecessary distance evaluations before calling
+`stringdist`.
 
 ## Installation
 
@@ -251,6 +252,8 @@ fuzzystring_inner_join(
 
 ## Performance
 
-**fuzzystring** uses a C++ implementation for row binding combined with
-a `data.table` backend for fast performance on large datasets. It is
-optimized for memory efficiency and type safety.
+**fuzzystring** now keeps more of the join execution on a compiled C++
+path while using `data.table` to orchestrate candidate generation. In
+practice this means compiled row expansion and binding across join
+modes, better preservation of typed columns, and adaptive candidate
+planning that helps both duplicate-heavy and low-duplication workloads.

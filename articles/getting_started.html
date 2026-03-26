@@ -80,9 +80,10 @@ Santos Andrade</h4>
 </h2>
 <p><strong>fuzzystring</strong> provides fast, flexible fuzzy string
 joins for data frames using approximate string matching. Built on top of
-<code>data.table</code> and <code>stringdist</code>, it’s designed for
-efficiently merging datasets where exact matches aren’t possible due to
-misspellings, inconsistent formatting, or slight variations in text.</p>
+<code>data.table</code> and <code>stringdist</code>, it uses a broader
+compiled C++ backend for row expansion, row binding, and result
+assembly, while adaptive candidate planning reduces unnecessary distance
+evaluations before calling <code>stringdist</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -331,10 +332,12 @@ for each:</p>
 <div class="section level2">
 <h2 id="performance">Performance<a class="anchor" aria-label="anchor" href="#performance"></a>
 </h2>
-<p><strong>fuzzystring</strong> uses a C++ implementation for row
-binding combined with a <code>data.table</code> backend for fast
-performance on large datasets. It is optimized for memory efficiency and
-type safety.</p>
+<p><strong>fuzzystring</strong> now keeps more of the join execution on
+a compiled C++ path while using <code>data.table</code> to orchestrate
+candidate generation. In practice this means compiled row expansion and
+binding across join modes, better preservation of typed columns, and
+adaptive candidate planning that helps both duplicate-heavy and
+low-duplication workloads.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
