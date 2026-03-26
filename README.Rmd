@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 [![](http://cranlogs.r-pkg.org/badges/last-week/fuzzystring?color=blue)](https://cran.r-project.org/package=fuzzystring)
 <!-- badges: end -->
 
-**fuzzystring** provides fast, flexible fuzzy string joins for data frames using approximate string matching. Built on top of `data.table` and `stringdist`, it's designed for efficiently merging datasets where exact matches aren't possible due to misspellings, inconsistent formatting, or slight variations in text.
+**fuzzystring** provides fast, flexible fuzzy string joins for data frames using approximate string matching. Built on top of `data.table` and `stringdist`, it uses an expanded compiled C++ backend for match expansion, row binding, and result assembly, while adaptive candidate planning reduces unnecessary distance evaluations before calling `stringdist`.
 
 ## Why fuzzystring?
 
@@ -38,7 +38,7 @@ Real-world data is messy. You might need to:
 
 - **All standard join types**: inner, left, right, full, semi, and anti joins
 - **Multiple distance metrics**: Levenshtein, Damerau-Levenshtein, Jaro-Winkler, Soundex, and more
-- **High performance**: C++ row binding and `data.table` backend for speed
+- **High performance**: expanded compiled C++ execution path plus `data.table` orchestration for speed
 - **Optional distance column**: Track how close matches are
 - **Flexible matching**: Case-insensitive options and customizable distance thresholds
 
@@ -256,11 +256,12 @@ unmatched
 
 ## Performance
 
-**fuzzystring** uses a C++ implementation for row binding combined with a `data.table` backend for fast performance on large datasets. The package is optimized for:
+**fuzzystring** now keeps more of the join execution on a compiled C++ path while using `data.table` to orchestrate candidate generation. The package is optimized for:
 
-- Efficient string distance calculations with prefiltering for Levenshtein-like metrics
+- Compiled row expansion, row binding, and final assembly across join modes
+- Adaptive candidate planning with prefiltering for Levenshtein-like metrics and larger dense blocks for low-duplication workloads
 - Memory-efficient joins using data.table's reference semantics
-- Type-safe column operations preserving factors, dates, and other attributes
+- Type-safe column operations preserving factors, dates, times, factors, and list-columns
 
 ## Advanced usage
 
@@ -303,5 +304,5 @@ fstring_inner_join(
 
 - **David Robinson**: Credited for the `fuzzyjoin` package, which served as the base for `fuzzystring`; some core `fuzzyjoin` functions were adapted and reinterpreted using `data.table`.
 
-**fuzzystring** builds on these great packages to provide a fast, data.table-native implementation with C++ optimization.
+**fuzzystring** builds on these great packages to provide a fast, data.table-native implementation with a larger compiled C++ execution path.
 

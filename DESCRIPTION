@@ -16,10 +16,12 @@ Description: Perform fuzzy joins on data frames using approximate string matchin
     Implements all standard join types (inner, left, right, full, semi, anti) with
     support for multiple string distance metrics from the 'stringdist' package
     including Levenshtein, Damerau-Levenshtein, Jaro-Winkler, and Soundex. Features
-    a high-performance 'data.table' backend with 'C++' row binding for efficient 
-    processing of large datasets. Ideal for matching misspellings, inconsistent 
-    labels, messy user input, or reconciling datasets with slight variations in 
-    identifiers. Optionally returns distance metrics alongside matched records.
+    a high-performance 'data.table' backend with an expanded compiled 'C++' execution
+    path for row expansion, binding, and result assembly, plus adaptive candidate
+    planning for efficient processing of large datasets. Ideal for matching
+    misspellings, inconsistent labels, messy user input, or reconciling datasets
+    with slight variations in identifiers. Optionally returns distance metrics
+    alongside matched records.
 License: MIT + file LICENSE
 Depends:
     R (>= 4.1)

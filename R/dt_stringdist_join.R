@@ -254,9 +254,10 @@ fst_stringdist_single_col_matches <- function(v1, v2, max_dist, method,
 
 #' Join two tables based on fuzzy string matching
 #'
-#' Uses \code{stringdist::stringdist()} to compute distances and a data.table-based
-#' backend to assemble the final result. This is the main user-facing entry point
-#' for fuzzy joins on strings.
+#' Uses \code{stringdist::stringdist()} to compute distances and a
+#' \code{data.table}-orchestrated backend with compiled 'C++' assembly to produce
+#' the final result. This is the main user-facing entry point for fuzzy joins on
+#' strings.
 #'
 #' @param x A \code{data.frame} or \code{data.table}.
 #' @param y A \code{data.frame} or \code{data.table}.
@@ -278,9 +279,13 @@ fst_stringdist_single_col_matches <- function(v1, v2, max_dist, method,
 #' If \code{method = "soundex"}, \code{max_dist} is automatically set to 0.5,
 #' since Soundex distance is 0 (match) or 1 (no match).
 #'
-#' For Levenshtein-like methods (\code{"osa"}, \code{"lv"}, \code{"dl"}), a fast
-#' prefilter is applied: if \code{abs(nchar(v1) - nchar(v2)) > max_dist}, the pair
-#' cannot match, so distance is not computed for that pair.
+#' For single-column joins, fuzzystring uses adaptive candidate planning before
+#' calling \code{stringdist::stringdist()}. For Levenshtein-like methods
+#' (\code{"osa"}, \code{"lv"}, \code{"dl"}), a fast prefilter is applied: if
+#' \code{abs(nchar(v1) - nchar(v2)) > max_dist}, the pair cannot match, so
+#' distance is not computed for that pair. For low-duplication workloads, the
+#' planner can also evaluate larger dense blocks of unique values to reduce
+#' orchestration overhead while preserving the same matching semantics.
 #'
 #' @return A joined table (same container type as \code{x}). See
 #'   \code{\link{fuzzystring_join_backend}} for details on output structure.
