@@ -4,92 +4,21 @@
 
 using namespace Rcpp;
 
-inline bool is_factor(SEXP x) {
-  return Rf_isFactor(x);
-}
+namespace {
 
-inline SEXP fill_by_index_str(SEXP col, const IntegerVector& idx) {
-  CharacterVector src(col);
-  int n = idx.size();
-  int src_len = src.size();
-  CharacterVector out(n);
-
-  for (int i = 0; i < n; i++) {
-    int ix = idx[i];
-    if (ix == NA_INTEGER || ix < 1 || ix > src_len) {
-      out[i] = NA_STRING;
-    } else {
-      out[i] = src[ix - 1];
-    }
-  }
-
-  return out;
-}
-
-inline SEXP fill_by_index_int(SEXP col, const IntegerVector& idx) {
-  IntegerVector src(col);
-  int n = idx.size();
-  int src_len = src.size();
-  IntegerVector out(n);
-
-  for (int i = 0; i < n; i++) {
-    int ix = idx[i];
-    if (ix == NA_INTEGER || ix < 1 || ix > src_len) {
-      out[i] = NA_INTEGER;
-    } else {
-      out[i] = src[ix - 1];
-    }
-  }
-
-  if (is_factor(col)) {
-    out.attr("levels") = Rf_getAttrib(col, R_LevelsSymbol);
-    out.attr("class") = Rf_getAttrib(col, R_ClassSymbol);
-  }
-
-  return out;
-}
-
-inline SEXP fill_by_index_real(SEXP col, const IntegerVector& idx) {
-  NumericVector src(col);
-  int n = idx.size();
-  int src_len = src.size();
-  NumericVector out(n);
-
-  for (int i = 0; i < n; i++) {
-    int ix = idx[i];
-    if (ix == NA_INTEGER || ix < 1 || ix > src_len) {
-      out[i] = NA_REAL;
-    } else {
-      out[i] = src[ix - 1];
-    }
-  }
-
-  return out;
-}
-
-inline SEXP fill_by_index_lgl(SEXP col, const IntegerVector& idx) {
-  LogicalVector src(col);
-  int n = idx.size();
-  int src_len = src.size();
-  LogicalVector out(n);
-
-  for (int i = 0; i < n; i++) {
-    int ix = idx[i];
-    if (ix == NA_INTEGER || ix < 1 || ix > src_len) {
-      out[i] = NA_LOGICAL;
-    } else {
-      out[i] = src[ix - 1];
-    }
-  }
-
-  return out;
+inline void copy_vector_attributes(SEXP from, SEXP to) {
+  Rf_copyMostAttrib(from, to);
+  Rf_setAttrib(to, R_NamesSymbol, R_NilValue);
+  Rf_setAttrib(to, R_DimSymbol, R_NilValue);
+  Rf_setAttrib(to, R_DimNamesSymbol, R_NilValue);
+  Rf_setAttrib(to, R_RowNamesSymbol, R_NilValue);
 }
 
 inline CharacterVector make_names(const CharacterVector& x_names,
                                   const CharacterVector& y_names,
                                   const CharacterVector& overlap) {
-  int nx = x_names.size();
-  int ny = y_names.size();
+  const int nx = x_names.size();
+  const int ny = y_names.size();
   CharacterVector out(nx + ny);
 
   std::unordered_set<std::string> overlap_set;
@@ -118,6 +47,85 @@ inline CharacterVector make_names(const CharacterVector& x_names,
   return out;
 }
 
+SEXP subset_column(SEXP col, const IntegerVector& idx) {
+  const int n = idx.size();
+  const R_xlen_t src_len = XLENGTH(col);
+
+  switch (TYPEOF(col)) {
+    case INTSXP: {
+      IntegerVector src(col);
+      IntegerVector out(n);
+      for (int i = 0; i < n; i++) {
+        const int ix = idx[i];
+        out[i] = (ix == NA_INTEGER || ix < 1 || ix > src_len) ? NA_INTEGER : src[ix - 1];
+      }
+      copy_vector_attributes(col, out);
+      return out;
+    }
+    case REALSXP: {
+      NumericVector src(col);
+      NumericVector out(n);
+      for (int i = 0; i < n; i++) {
+        const int ix = idx[i];
+        out[i] = (ix == NA_INTEGER || ix < 1 || ix > src_len) ? NA_REAL : src[ix - 1];
+      }
+      copy_vector_attributes(col, out);
+      return out;
+    }
+    case LGLSXP: {
+      LogicalVector src(col);
+      LogicalVector out(n);
+      for (int i = 0; i < n; i++) {
+        const int ix = idx[i];
+        out[i] = (ix == NA_INTEGER || ix < 1 || ix > src_len) ? NA_LOGICAL : src[ix - 1];
+      }
+      copy_vector_attributes(col, out);
+      return out;
+    }
+    case STRSXP: {
+      CharacterVector src(col);
+      CharacterVector out(n);
+      for (int i = 0; i < n; i++) {
+        const int ix = idx[i];
+        out[i] = (ix == NA_INTEGER || ix < 1 || ix > src_len) ? NA_STRING : src[ix - 1];
+      }
+      copy_vector_attributes(col, out);
+      return out;
+    }
+    case VECSXP: {
+      List src(col);
+      List out(n);
+      for (int i = 0; i < n; i++) {
+        const int ix = idx[i];
+        out[i] = (ix == NA_INTEGER || ix < 1 || ix > src_len) ? R_NilValue : src[ix - 1];
+      }
+      copy_vector_attributes(col, out);
+      return out;
+    }
+    default:
+      Rcpp::stop("Unsupported column type in bind_by_rowid_cpp_matches");
+  }
+}
+
+void append_extra_columns(List& out_list,
+                          CharacterVector& full_names,
+                          const DataFrame& matches,
+                          int start_pos) {
+  CharacterVector matches_names = matches.names();
+  int out_pos = start_pos;
+
+  for (int i = 0; i < matches_names.size(); i++) {
+    String name = matches_names[i];
+    if (name != "x" && name != "y" && name != "i") {
+      out_list[out_pos] = matches[i];
+      full_names[out_pos] = name;
+      out_pos++;
+    }
+  }
+}
+
+} // namespace
+
 // [[Rcpp::export(rng = false)]]
 SEXP bind_by_rowid_cpp_matches(SEXP x_dt,
                                SEXP y_dt,
@@ -130,14 +138,13 @@ SEXP bind_by_rowid_cpp_matches(SEXP x_dt,
   IntegerVector x_idx = matches["x"];
   IntegerVector y_idx = matches["y"];
 
-  int n = x_idx.size();
-  int nx_cols = x_df.size();
-  int ny_cols = y_df.size();
+  const int n = x_idx.size();
+  const int nx_cols = x_df.size();
+  const int ny_cols = y_df.size();
 
   CharacterVector matches_names = matches.names();
-  int n_matches_cols = matches_names.size();
   int extra_count = 0;
-  for (int i = 0; i < n_matches_cols; i++) {
+  for (int i = 0; i < matches_names.size(); i++) {
     String name = matches_names[i];
     if (name != "x" && name != "y" && name != "i") {
       extra_count++;
@@ -147,65 +154,21 @@ SEXP bind_by_rowid_cpp_matches(SEXP x_dt,
   List out_list(nx_cols + ny_cols + extra_count);
 
   for (int j = 0; j < nx_cols; j++) {
-    SEXP col = x_df[j];
-    switch(TYPEOF(col)) {
-      case INTSXP:
-        out_list[j] = fill_by_index_int(col, x_idx);
-        break;
-      case REALSXP:
-        out_list[j] = fill_by_index_real(col, x_idx);
-        break;
-      case LGLSXP:
-        out_list[j] = fill_by_index_lgl(col, x_idx);
-        break;
-      case STRSXP:
-        out_list[j] = fill_by_index_str(col, x_idx);
-        break;
-      default:
-        Rcpp::stop("Unsupported column type in x");
-    }
+    out_list[j] = subset_column(x_df[j], x_idx);
   }
 
   for (int j = 0; j < ny_cols; j++) {
-    SEXP col = y_df[j];
-    switch(TYPEOF(col)) {
-      case INTSXP:
-        out_list[nx_cols + j] = fill_by_index_int(col, y_idx);
-        break;
-      case REALSXP:
-        out_list[nx_cols + j] = fill_by_index_real(col, y_idx);
-        break;
-      case LGLSXP:
-        out_list[nx_cols + j] = fill_by_index_lgl(col, y_idx);
-        break;
-      case STRSXP:
-        out_list[nx_cols + j] = fill_by_index_str(col, y_idx);
-        break;
-      default:
-        Rcpp::stop("Unsupported column type in y");
-    }
+    out_list[nx_cols + j] = subset_column(y_df[j], y_idx);
   }
 
-  CharacterVector x_names = x_df.names();
-  CharacterVector y_names = y_df.names();
-  CharacterVector out_names = make_names(x_names, y_names, overlap);
+  CharacterVector base_names = make_names(x_df.names(), y_df.names(), overlap);
+  CharacterVector full_names(nx_cols + ny_cols + extra_count);
 
-  int out_pos = nx_cols + ny_cols;
-  int out_names_pos = out_names.size();
-  CharacterVector full_names(out_names_pos + extra_count);
-  for (int i = 0; i < out_names_pos; i++) {
-    full_names[i] = out_names[i];
+  for (int i = 0; i < base_names.size(); i++) {
+    full_names[i] = base_names[i];
   }
 
-  for (int i = 0; i < n_matches_cols; i++) {
-    String name = matches_names[i];
-    if (name != "x" && name != "y" && name != "i") {
-      out_list[out_pos] = matches[i];
-      full_names[out_names_pos] = name;
-      out_pos++;
-      out_names_pos++;
-    }
-  }
+  append_extra_columns(out_list, full_names, matches, nx_cols + ny_cols);
 
   out_list.attr("names") = full_names;
   out_list.attr("class") = CharacterVector::create("data.table", "data.frame");

@@ -62,9 +62,6 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
 
   x_is_dt <- data.table::is.data.table(x)
 
-  x_original <- x
-  y_original <- y
-
   if (data.table::is.data.table(x)) {
     x_dt <- x
   } else {
@@ -169,146 +166,11 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
   # --- C++ binding function --------------------------------------------------
   # Uses the compiled C++ function instead of R implementation
 
-  bind_by_rowid_cpp_wrapper <- function(x_dt2, y_dt2, matches_dt, x_orig = x_dt2, y_orig = y_dt2, overlap = character(0)) {
-    # Assemble final result by subsetting x and y according to match indices.
-    #
-    # This function handles two cases:
-    #   1. Inner joins (no NAs): uses fast C++ implementation
-    #   2. Outer joins (contains NAs): uses R implementation to handle unmatched rows with proper NA typing
-    #
-    # Args:
-    #   x_dt2, y_dt2: processed tables (may have renamed overlapping columns)
-    #   matches_dt: data.table with columns 'x', 'y' (1-based row indices from each table)
-    #   x_orig, y_orig: original unmodified tables (for subsetting in outer joins)
-    #   overlap: character vector of column names that appear in both tables
-    #
-    # Returns: joined result with rows selected by matches_dt indices
-
-    n_rows <- nrow(matches_dt)
-
-    if (n_rows == 0L) {
-      # Empty case: no matches found, create empty result with correct column types
-      ret <- data.table::data.table()
-      for (col in names(x_dt2)) ret[[col]] <- x_dt2[[col]][0]
-      for (col in names(y_dt2)) ret[[col]] <- y_dt2[[col]][0]
-      extra_cols <- setdiff(names(matches_dt), c("x", "y", "i"))
-      for (col in extra_cols) ret[[col]] <- matches_dt[[col]]
-      return(ret)
+  bind_by_rowid_cpp_wrapper <- function(x_dt2, y_dt2, matches_dt, overlap = character(0)) {
+    ret <- bind_by_rowid_cpp_matches(x_dt2, y_dt2, matches_dt, overlap)
+    if (!data.table::is.data.table(ret)) {
+      ret <- data.table::as.data.table(ret)
     }
-
-    x_idx <- matches_dt$x
-    y_idx <- matches_dt$y
-    has_na <- any(is.na(x_idx)) || any(is.na(y_idx))  # TRUE if outer join with unmatched rows
-
-    # FAST PATH: Inner joins (no unmatched rows) - use optimized C++ implementation
-    if (!has_na) {
-      # Use original data for subsetting (more reliable column preservation)
-      use_x <- if (identical(x_dt2, x_orig)) x_orig else x_dt2
-      use_y <- if (identical(y_dt2, y_orig)) y_orig else y_dt2
-
-      # Ensure they are data.tables
-      if (!data.table::is.data.table(use_x)) use_x <- data.table::as.data.table(use_x)
-      if (!data.table::is.data.table(use_y)) use_y <- data.table::as.data.table(use_y)
-
-      # Call C++ function (via Rcpp) for fast row subsetting and binding
-      ret <- bind_by_rowid_cpp(use_x, use_y, x_idx, y_idx, overlap)
-
-      # Convert to data.table if not already
-      if (!data.table::is.data.table(ret)) {
-        ret <- data.table::as.data.table(ret)
-      }
-
-      # Add extra columns (e.g., distances) if present
-      extra_cols <- setdiff(names(matches_dt), c("x", "y", "i"))
-      if (length(extra_cols) > 0L) {
-        data.table::setalloccol(ret)
-        for (col in extra_cols) {
-          data.table::set(ret, j = col, value = matches_dt[[col]])
-        }
-      }
-
-      return(ret)
-    }
-
-    # SLOW PATH: Outer joins (left/right/full) with NAs - use R implementation
-    # Reason: Must create NA rows with correct types for unmatched entries.
-    # C++ optimization possible but not yet implemented.
-    # Initialize result with placeholder column
-    ret <- data.table::data.table(.dummy = seq_len(n_rows))
-
-    # Build columns from x table:
-    # Start with NA values of correct type (preserving factors, dates, etc.)
-    # Then fill in rows where x was matched (valid_x rows)
-    for (col in names(x_orig)) {
-      col_data <- x_orig[[col]]
-      # Create NA of same type as col_data
-      if (is.factor(col_data)) {
-        new_col <- factor(rep(NA, n_rows), levels = levels(col_data))
-      } else if (inherits(col_data, "Date")) {
-        new_col <- rep(as.Date(NA), n_rows)
-      } else if (inherits(col_data, "POSIXct")) {
-        new_col <- rep(as.POSIXct(NA), n_rows)
-      } else if (is.integer(col_data)) {
-        new_col <- rep(NA_integer_, n_rows)
-      } else if (is.numeric(col_data)) {
-        new_col <- rep(NA_real_, n_rows)
-      } else if (is.character(col_data)) {
-        new_col <- rep(NA_character_, n_rows)
-      } else if (is.logical(col_data)) {
-        new_col <- rep(NA, n_rows)
-      } else {
-        new_col <- rep(col_data[NA_integer_], n_rows)
-      }
-
-      # Fill matched rows with actual data from x_orig
-      valid_x <- !is.na(x_idx)
-      if (any(valid_x)) {
-        new_col[valid_x] <- col_data[x_idx[valid_x]]
-      }
-      ret[[col]] <- new_col
-    }
-
-    # Build columns from y table (same NA-handling logic as x)
-    for (col in names(y_orig)) {
-      col_data <- y_orig[[col]]
-      # Create NA of same type as col_data
-      if (is.factor(col_data)) {
-        new_col <- factor(rep(NA, n_rows), levels = levels(col_data))
-      } else if (inherits(col_data, "Date")) {
-        new_col <- rep(as.Date(NA), n_rows)
-      } else if (inherits(col_data, "POSIXct")) {
-        new_col <- rep(as.POSIXct(NA), n_rows)
-      } else if (is.integer(col_data)) {
-        new_col <- rep(NA_integer_, n_rows)
-      } else if (is.numeric(col_data)) {
-        new_col <- rep(NA_real_, n_rows)
-      } else if (is.character(col_data)) {
-        new_col <- rep(NA_character_, n_rows)
-      } else if (is.logical(col_data)) {
-        new_col <- rep(NA, n_rows)
-      } else {
-        new_col <- rep(col_data[NA_integer_], n_rows)
-      }
-
-      # Fill matched rows with actual data from y_orig
-      valid_y <- !is.na(y_idx)
-      if (any(valid_y)) {
-        new_col[valid_y] <- col_data[y_idx[valid_y]]
-      }
-      ret[[col]] <- new_col
-    }
-
-    ret[, .dummy := NULL]  # Remove placeholder column
-
-    # Add extra columns (e.g., distance values from match function) if present
-    extra_cols <- setdiff(names(matches_dt), c("x", "y", "i"))
-    if (length(extra_cols) > 0L) {
-      data.table::setalloccol(ret)
-      for (col in extra_cols) {
-        data.table::set(ret, j = col, value = matches_dt[[col]])
-      }
-    }
-
     ret
   }
 
@@ -421,8 +283,8 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
     ix <- group_indices_multicol(x_dt, by2$x)
     iy <- group_indices_multicol(y_dt, by2$y)
 
-    ux <- as.matrix(ix[, ..by2$x])
-    uy <- as.matrix(iy[, ..by2$y])
+    ux <- as.matrix(ix[, by2$x, with = FALSE])
+    uy <- as.matrix(iy[, by2$y, with = FALSE])
 
     n_x <- nrow(ux)
     n_y <- nrow(uy)
@@ -465,8 +327,8 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
     imf <- as_mapper_dt(index_match_fun)
     by2 <- fst_common_by(multi_by, x_dt, y_dt)
 
-    d1 <- x_dt[, ..by2$x]
-    d2 <- y_dt[, ..by2$y]
+    d1 <- x_dt[, by2$x, with = FALSE]
+    d2 <- y_dt[, by2$y, with = FALSE]
     matches <- imf(d1, d2)
 
     if (!data.table::is.data.table(matches)) matches <- data.table::as.data.table(matches)
@@ -484,18 +346,27 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
     keep <- sort(unique(matches$x))
     keep <- keep[!is.na(keep)]
     res <- x_dt[keep]
+    if (!x_is_dt) {
+      return(as.data.frame(res))
+    }
     return(res)
     #return(if (data.table::is.data.table(x)) res else as.data.frame(res))
   }
 
   if (mode == "anti") {
     if (nrow(matches) == 0L) {
+      if (!x_is_dt) {
+        return(as.data.frame(x_dt))
+      }
       return(x_dt)
       #return(if (data.table::is.data.table(x)) x_dt else as.data.frame(x_dt))
     }
     drop <- sort(unique(matches$x))
     drop <- drop[!is.na(drop)]
     res <- x_dt[-drop]
+    if (!x_is_dt) {
+      return(as.data.frame(res))
+    }
     return(res)
     #return(if (data.table::is.data.table(x)) res else as.data.frame(res))
   }
@@ -540,8 +411,12 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
 
   # --- construir resultado final usando C++ ---------------------------------
 
-  ret <- bind_by_rowid_cpp_wrapper(x_dt, y_dt, matches, x_original, y_original, overlap)
+  ret <- bind_by_rowid_cpp_wrapper(x_dt, y_dt, matches, overlap)
   ret <- fst_ensure_distance_col(ret, distance_col = NULL, mode = mode)
+
+  if (!x_is_dt) {
+    ret <- as.data.frame(ret)
+  }
 
   ret
 }

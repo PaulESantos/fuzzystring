@@ -29,7 +29,7 @@ test_that("stringdist_join / variants (data.table backend)", {
                                 distance_col = "distance")
 
   # count(cut, cut2) + arrange(cut)
-  result <- as.data.table(j)[, .N, by = .(cut, cut2)]
+  result <- data.table::as.data.table(j)[, .N, by = .(cut, cut2)]
   data.table::setorder(result, cut)
 
   expect_equal(as.character(result$cut),
@@ -45,7 +45,7 @@ test_that("stringdist_join / variants (data.table backend)", {
   # With default max_dist=2, here all accepted should be distance 1
   expect_true(all(j$distance == 1))
 
-  vg <- as.data.table(j)[cut == "Very Good", .N, by = type]
+  vg <- data.table::as.data.table(j)[cut == "Very Good", .N, by = type]
   data.table::setorder(vg, type)
 
   expect_equal(vg$type, c(4L, 5L))
@@ -297,4 +297,87 @@ test_that("stringdist_join / variants (data.table backend)", {
 
   res_anti <- fuzzystring_anti_join(a, b, by = c(x = "y"), max_dist = 1, distance_col = "distance")
   expect_equal(as.data.frame(a), as.data.frame(res_anti))
+
+  # ------------------------------------------------------------------
+  # Overlapping names in outer joins keep .x / .y suffixes
+  # ------------------------------------------------------------------
+  x_overlap_outer <- data.table::data.table(
+    key_value = c("alpha", "bravo"),
+    shared = 1:2,
+    when = as.Date(c("2024-01-01", "2024-01-02"))
+  )
+  data.table::setnames(x_overlap_outer, "key_value", "key")
+  y_overlap_outer <- data.table::data.table(
+    key_value = c("alphx", "charlie"),
+    shared = 10:11,
+    label = c("matched", "unmatched")
+  )
+  data.table::setnames(y_overlap_outer, "key_value", "key")
+
+  outer_overlap <- fuzzystring_full_join(
+    x_overlap_outer,
+    y_overlap_outer,
+    by = "key",
+    max_dist = 1,
+    distance_col = "distance"
+  )
+
+  expect_true(all(c("key.x", "shared.x", "key.y", "shared.y", "when", "label", "distance") %in% names(outer_overlap)))
+  expect_s3_class(outer_overlap$when, "Date")
+  expect_equal(sum(is.na(outer_overlap$key.x)), 1L)
+  expect_equal(sum(is.na(outer_overlap$key.y)), 1L)
+
+  # ------------------------------------------------------------------
+  # Typed columns are preserved in compiled binding paths
+  # ------------------------------------------------------------------
+  x_typed <- data.table::data.table(
+    name = c("alpha", "bravo"),
+    when = as.Date(c("2024-01-01", "2024-01-02")),
+    stamp = as.POSIXct(c("2024-01-01 10:00:00", "2024-01-02 11:30:00"), tz = "UTC"),
+    grp = factor(c("a", "b")),
+    payload = I(list(list(id = 1L), list(id = 2L)))
+  )
+  y_typed <- data.table::data.table(
+    approx_name = c("alphx", "charlie"),
+    note = c("hit", "miss"),
+    meta = I(list(list(code = 10L), list(code = 20L)))
+  )
+
+  typed_left <- fuzzystring_left_join(
+    x_typed,
+    y_typed,
+    by = c(name = "approx_name"),
+    max_dist = 1,
+    distance_col = "distance"
+  )
+
+  expect_s3_class(typed_left$when, "Date")
+  expect_s3_class(typed_left$stamp, "POSIXct")
+  expect_equal(attr(typed_left$stamp, "tzone"), "UTC")
+  expect_true(is.factor(typed_left$grp))
+  expect_type(typed_left$payload, "list")
+  expect_equal(typed_left$payload[[1]]$id, 1L)
+  expect_true(is.na(typed_left$note[2]))
+
+  typed_right <- fuzzystring_right_join(
+    x_typed,
+    y_typed,
+    by = c(name = "approx_name"),
+    max_dist = 1,
+    distance_col = "distance"
+  )
+
+  expect_type(typed_right$meta, "list")
+  expect_equal(typed_right$meta[[1]]$code, 10L)
+  expect_true(is.na(typed_right$when[is.na(typed_right$name)][1]))
+
+  # ------------------------------------------------------------------
+  # data.frame inputs return plain data.frames
+  # ------------------------------------------------------------------
+  res_semi_df <- fuzzystring_semi_join(as.data.frame(a), as.data.frame(a), by = c(x = "x"), max_dist = 0)
+  res_anti_df <- fuzzystring_anti_join(as.data.frame(a), as.data.frame(b), by = c(x = "y"), max_dist = 1)
+  expect_s3_class(res_semi_df, "data.frame")
+  expect_false(data.table::is.data.table(res_semi_df))
+  expect_s3_class(res_anti_df, "data.frame")
+  expect_false(data.table::is.data.table(res_anti_df))
 })

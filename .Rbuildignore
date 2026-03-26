@@ -9,3 +9,5 @@
 ^docs$
 ^pkgdown$
 ^ia_asistant$
+^benchmarks$
+^pkg$

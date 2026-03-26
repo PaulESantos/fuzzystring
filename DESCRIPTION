@@ -1,6 +1,6 @@
 Package: fuzzystring
 Title: Fast Fuzzy String Joins for Data Frames
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 
     c(person(given = "Paul E.",
            family = "Santos Andrade",
@@ -48,3 +48,4 @@ RoxygenNote: 7.3.3
 URL: https://github.com/PaulESantos/fuzzystring, https://paulesantos.github.io/fuzzystring/
 BugReports: https://github.com/PaulESantos/fuzzystring/issues
 VignetteBuilder: knitr
+Maintainer: Paul E. Santos Andrade <paulefrens@gmail.com>
