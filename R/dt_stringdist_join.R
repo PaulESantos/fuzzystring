@@ -279,6 +279,11 @@ fst_stringdist_single_col_matches <- function(v1, v2, max_dist, method,
 #' If \code{method = "soundex"}, \code{max_dist} is automatically set to 0.5,
 #' since Soundex distance is 0 (match) or 1 (no match).
 #'
+#' When \code{by} maps multiple columns, the same \code{method},
+#' \code{max_dist}, and any additional \code{stringdist} arguments are applied
+#' independently to each mapped column, and a row pair is kept only when all
+#' mapped columns satisfy the distance threshold.
+#'
 #' For single-column joins, fuzzystring uses adaptive candidate planning before
 #' calling \code{stringdist::stringdist()}. For Levenshtein-like methods
 #' (\code{"osa"}, \code{"lv"}, \code{"dl"}), a fast prefilter is applied: if
@@ -287,8 +292,11 @@ fst_stringdist_single_col_matches <- function(v1, v2, max_dist, method,
 #' planner can also evaluate larger dense blocks of unique values to reduce
 #' orchestration overhead while preserving the same matching semantics.
 #'
-#' @return A joined table (same container type as \code{x}). See
-#'   \code{\link{fuzzystring_join_backend}} for details on output structure.
+#' @return A joined table that preserves the container class of \code{x}:
+#'   \code{data.table} inputs return \code{data.table}, tibble inputs return
+#'   tibble, and plain \code{data.frame} inputs return plain
+#'   \code{data.frame}. See \code{\link{fuzzystring_join_backend}} for details
+#'   on output structure.
 #'
 #' @examples
 #' \donttest{

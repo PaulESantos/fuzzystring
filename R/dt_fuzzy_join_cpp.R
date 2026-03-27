@@ -25,8 +25,10 @@
 #'   \code{"semi"}, or \code{"anti"}.
 #' @param ... Additional arguments passed to the matching function(s).
 #'
-#' @return A joined table (same container type as \code{x}). See
-#'   \code{\link{fuzzystring_join}}.
+#' @return A joined table that preserves the container class of \code{x}:
+#'   \code{data.table} inputs return \code{data.table}, tibble inputs return
+#'   tibble, and plain \code{data.frame} inputs return plain
+#'   \code{data.frame}. See \code{\link{fuzzystring_join}}.
 #'
 #' @details
 #' This function works like \code{\link{fuzzystring_join}}, but replaces the
@@ -61,6 +63,25 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
   }
 
   x_is_dt <- data.table::is.data.table(x)
+  x_is_tibble <- inherits(x, "tbl_df")
+
+  restore_output_class <- function(out) {
+    if (x_is_dt) {
+      return(out)
+    }
+
+    if (x_is_tibble) {
+      if (!requireNamespace("tibble", quietly = TRUE)) {
+        stop(
+          "Returning tibble output requires the 'tibble' package to be installed.",
+          call. = FALSE
+        )
+      }
+      return(tibble::as_tibble(out, .name_repair = "minimal"))
+    }
+
+    as.data.frame(out)
+  }
 
   if (data.table::is.data.table(x)) {
     x_dt <- x
@@ -346,29 +367,17 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
     keep <- sort(unique(matches$x))
     keep <- keep[!is.na(keep)]
     res <- x_dt[keep]
-    if (!x_is_dt) {
-      return(as.data.frame(res))
-    }
-    return(res)
-    #return(if (data.table::is.data.table(x)) res else as.data.frame(res))
+    return(restore_output_class(res))
   }
 
   if (mode == "anti") {
     if (nrow(matches) == 0L) {
-      if (!x_is_dt) {
-        return(as.data.frame(x_dt))
-      }
-      return(x_dt)
-      #return(if (data.table::is.data.table(x)) x_dt else as.data.frame(x_dt))
+      return(restore_output_class(x_dt))
     }
     drop <- sort(unique(matches$x))
     drop <- drop[!is.na(drop)]
     res <- x_dt[-drop]
-    if (!x_is_dt) {
-      return(as.data.frame(res))
-    }
-    return(res)
-    #return(if (data.table::is.data.table(x)) res else as.data.frame(res))
+    return(restore_output_class(res))
   }
 
   # --- preparar renombres y completar índices según modo ---------------------
@@ -414,77 +423,6 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
   ret <- bind_by_rowid_cpp_wrapper(x_dt, y_dt, matches, overlap)
   ret <- fst_ensure_distance_col(ret, distance_col = NULL, mode = mode)
 
-  if (!x_is_dt) {
-    ret <- as.data.frame(ret)
-  }
-
-  ret
+  restore_output_class(ret)
 }
-# # Wrappers ------------------------------------------------------------
-#
-# #' Fuzzy inner join
-# #'
-# #' Convenience wrapper for \code{fuzzystring_join_backend(mode = "inner")}.
-# #'
-# #' @inheritParams fuzzystring_join_backend
-# #' @return See \code{\link{fuzzystring_join_backend}}.
-# #' @export
-# fstring_inner_join <- function(x, y, by = NULL, match_fun, ...) {
-#   fuzzystring_join_backend(x, y, by = by, match_fun = match_fun, mode = "inner", ...)
-# }
-#
-# #' Fuzzy left join
-# #'
-# #' Convenience wrapper for \code{fuzzystring_join_backend(mode = "left")}.
-# #'
-# #' @inheritParams fuzzystring_join_backend
-# #' @return See \code{\link{fuzzystring_join_backend}}.
-# #' @export
-# fstring_left_join <- function(x, y, by = NULL, match_fun, ...) {
-#   fuzzystring_join_backend(x, y, by = by, match_fun = match_fun, mode = "left", ...)
-# }
-#
-# #' Fuzzy right join
-# #'
-# #' Convenience wrapper for \code{fuzzystring_join_backend(mode = "right")}.
-# #'
-# #' @inheritParams fuzzystring_join_backend
-# #' @return See \code{\link{fuzzystring_join_backend}}.
-# #' @export
-# fstring_right_join <- function(x, y, by = NULL, match_fun, ...) {
-#   fuzzystring_join_backend(x, y, by = by, match_fun = match_fun, mode = "right", ...)
-# }
-#
-# #' Fuzzy full join
-# #'
-# #' Convenience wrapper for \code{fuzzystring_join_backend(mode = "full")}.
-# #'
-# #' @inheritParams fuzzystring_join_backend
-# #' @return See \code{\link{fuzzystring_join_backend}}.
-# #' @export
-# fstring_full_join <- function(x, y, by = NULL, match_fun, ...) {
-#   fuzzystring_join_backend(x, y, by = by, match_fun = match_fun, mode = "full", ...)
-# }
-#
-# #' Fuzzy semi join
-# #'
-# #' Convenience wrapper for \code{fuzzystring_join_backend(mode = "semi")}.
-# #'
-# #' @inheritParams fuzzystring_join_backend
-# #' @return See \code{\link{fuzzystring_join_backend}}.
-# #' @export
-# fstring_semi_join <- function(x, y, by = NULL, match_fun, ...) {
-#   fuzzystring_join_backend(x, y, by = by, match_fun = match_fun, mode = "semi", ...)
-# }
-#
-# #' Fuzzy anti join
-# #'
-# #' Convenience wrapper for \code{fuzzystring_join_backend(mode = "anti")}.
-# #'
-# #' @inheritParams fuzzystring_join_backend
-# #' @return See \code{\link{fuzzystring_join_backend}}.
-# #' @export
-# fstring_anti_join <- function(x, y, by = NULL, match_fun, ...) {
-#   fuzzystring_join_backend(x, y, by = by, match_fun = match_fun, mode = "anti", ...)
-# }
 #

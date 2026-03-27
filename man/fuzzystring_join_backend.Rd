@@ -47,8 +47,10 @@ is logical) indicating which rows match.}
 \item{...}{Additional arguments passed to the matching function(s).}
 }
 \value{
-A joined table (same container type as \code{x}). See
-\code{\link{fuzzystring_join}}.
+A joined table that preserves the container class of \code{x}:
+\code{data.table} inputs return \code{data.table}, tibble inputs return
+tibble, and plain \code{data.frame} inputs return plain
+\code{data.frame}. See \code{\link{fuzzystring_join}}.
 }
 \description{
 Low-level engine used by \code{\link{fuzzystring_join}} and the compiled

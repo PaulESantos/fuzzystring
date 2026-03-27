@@ -1,6 +1,6 @@
 Package: fuzzystring
 Title: Fast Fuzzy String Joins for Data Frames
-Version: 0.0.2
+Version: 0.0.3
 Authors@R: 
     c(person(given = "Paul E.",
            family = "Santos Andrade",
@@ -12,16 +12,16 @@ Authors@R:
              role = "ctb",
              email = "admiral.david@gmail.com",
              comment = "aut of fuzzyjoin"))
-Description: Perform fuzzy joins on data frames using approximate string matching.
-    Implements all standard join types (inner, left, right, full, semi, anti) with
-    support for multiple string distance metrics from the 'stringdist' package
-    including Levenshtein, Damerau-Levenshtein, Jaro-Winkler, and Soundex. Features
-    a high-performance 'data.table' backend with an expanded compiled 'C++' execution
-    path for row expansion, binding, and result assembly, plus adaptive candidate
-    planning for efficient processing of large datasets. Ideal for matching
-    misspellings, inconsistent labels, messy user input, or reconciling datasets
-    with slight variations in identifiers. Optionally returns distance metrics
-    alongside matched records.
+Description: Perform fuzzy joins on data frames using approximate string
+    matching. Implements inner, left, right, full, semi, and anti joins with
+    string distance metrics from the 'stringdist' package, including Optimal
+    String Alignment, Levenshtein, Damerau-Levenshtein, Jaro-Winkler, q-gram,
+    cosine, jaccard, and Soundex. Uses a 'data.table' backend plus compiled
+    'C++' result assembly to reduce overhead in large joins, while adaptive
+    candidate planning avoids unnecessary distance evaluations in single-column
+    string joins. Suitable for reconciling misspellings, inconsistent labels,
+    and other near-match identifiers while optionally returning the computed
+    distance for each match.
 License: MIT + file LICENSE
 Depends:
     R (>= 4.1)
@@ -41,6 +41,7 @@ Suggests:
     rvest,
     stringr,
     testthat (>= 3.0.0),
+    tibble,
     tidyr
 Config/testthat/edition: 3
 Encoding: UTF-8
