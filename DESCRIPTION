@@ -1,6 +1,6 @@
 Package: fuzzystring
 Title: Fast Fuzzy String Joins for Data Frames
-Version: 0.0.3
+Version: 0.0.4
 Authors@R: 
     c(person(given = "Paul E.",
            family = "Santos Andrade",
