@@ -73,7 +73,9 @@ fuzzystring_join_backend(
 
 ## Value
 
-A joined table (same container type as `x`). See
+A joined table that preserves the container class of `x`: `data.table`
+inputs return `data.table`, tibble inputs return tibble, and plain
+`data.frame` inputs return plain `data.frame`. See
 [`fuzzystring_join`](https://paulesantos.github.io/fuzzystring/reference/fuzzystring_join.md).
 
 ## Details

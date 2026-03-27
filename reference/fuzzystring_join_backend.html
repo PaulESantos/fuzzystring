@@ -11,7 +11,7 @@ expands and assembles the result using compiled 'C++' binding code for speed."><
 
     <a class="navbar-brand me-2" href="../index.html">fuzzystring</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,7 +23,7 @@ expands and assembles the result using compiled 'C++' binding code for speed."><
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting_started.html">Getting Started with fuzzystring</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/benchmark_fuzzyjoin_comparison.html">Benchmark comparison</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/PaulESantos/fuzzystring/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
@@ -113,8 +113,10 @@ is logical) indicating which rows match.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A joined table (same container type as <code>x</code>). See
-<code><a href="fuzzystring_join.html">fuzzystring_join</a></code>.</p>
+    <p>A joined table that preserves the container class of <code>x</code>:
+<code>data.table</code> inputs return <code>data.table</code>, tibble inputs return
+tibble, and plain <code>data.frame</code> inputs return plain
+<code>data.frame</code>. See <code><a href="fuzzystring_join.html">fuzzystring_join</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

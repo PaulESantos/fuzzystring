@@ -2,6 +2,9 @@
 
 ## All functions
 
+- [`fuzzystring-package`](https://paulesantos.github.io/fuzzystring/reference/fuzzystring.md)
+  [`fuzzystring`](https://paulesantos.github.io/fuzzystring/reference/fuzzystring.md)
+  : fuzzystring: Fast fuzzy string joins for data frames
 - [`fuzzystring_join()`](https://paulesantos.github.io/fuzzystring/reference/fuzzystring_join.md)
   [`fuzzystring_inner_join()`](https://paulesantos.github.io/fuzzystring/reference/fuzzystring_join.md)
   [`fuzzystring_left_join()`](https://paulesantos.github.io/fuzzystring/reference/fuzzystring_join.md)

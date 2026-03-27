@@ -6,16 +6,21 @@ library(fuzzystring)
 
 ## Introduction
 
-**fuzzystring** provides fast, flexible fuzzy string joins for data
-frames using approximate string matching. Built on top of `data.table`
-and `stringdist`, it uses a broader compiled C++ backend for row
-expansion, row binding, and result assembly, while adaptive candidate
-planning reduces unnecessary distance evaluations before calling
-`stringdist`.
+**fuzzystring** provides fast, flexible fuzzy string joins for
+`data.frame` and `data.table` objects using approximate string matching.
+Built on top of `data.table` and `stringdist`, it uses compiled C++
+result assembly plus adaptive candidate planning to reduce unnecessary
+distance evaluations in single-column joins.
 
 ## Installation
 
-You can install the development version of **fuzzystring** from GitHub:
+You can install **fuzzystring** from CRAN:
+
+``` r
+install.packages("fuzzystring")
+```
+
+You can also install the development version from GitHub:
 
 ``` r
 # Using pak (recommended)
@@ -236,17 +241,26 @@ fuzzystring_inner_join(
 
 ### Multiple Column Joins
 
-You can match on multiple columns using different matching functions for
-each:
+You can match on multiple string columns at once. The same distance
+method and threshold are applied to each mapped column.
 
 ``` r
+x_multi <- data.frame(
+  first = c("Jon", "Maira"),
+  last = c("Smyth", "Gonzales")
+)
+
+y_multi <- data.frame(
+  first_ref = c("John", "Maria"),
+  last_ref = c("Smith", "Gonzalez"),
+  customer_id = 1:2
+)
+
 fuzzystring_inner_join(
-  x, y,
-  by = c(name = "approx_name", value = "approx_value"),
-  match_fun = list(
-    name = function(x, y) stringdist::stringdist(x, y) <= 1,
-    value = function(x, y) abs(x - y) < 0.5
-  )
+  x_multi, y_multi,
+  by = c(first = "first_ref", last = "last_ref"),
+  method = "osa",
+  max_dist = 1
 )
 ```
 
@@ -257,3 +271,6 @@ path while using `data.table` to orchestrate candidate generation. In
 practice this means compiled row expansion and binding across join
 modes, better preservation of typed columns, and adaptive candidate
 planning that helps both duplicate-heavy and low-duplication workloads.
+
+For a dedicated comparison against `fuzzyjoin::stringdist_join()`, see
+the benchmark article bundled with the package.

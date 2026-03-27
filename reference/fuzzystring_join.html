@@ -13,7 +13,7 @@ strings."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fuzzystring</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,7 +25,7 @@ strings."></head><body>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting_started.html">Getting Started with fuzzystring</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/benchmark_fuzzyjoin_comparison.html">Benchmark comparison</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/PaulESantos/fuzzystring/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
@@ -124,13 +124,20 @@ in outer joins).</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A joined table (same container type as <code>x</code>). See
-<code><a href="fuzzystring_join_backend.html">fuzzystring_join_backend</a></code> for details on output structure.</p>
+    <p>A joined table that preserves the container class of <code>x</code>:
+<code>data.table</code> inputs return <code>data.table</code>, tibble inputs return
+tibble, and plain <code>data.frame</code> inputs return plain
+<code>data.frame</code>. See <code><a href="fuzzystring_join_backend.html">fuzzystring_join_backend</a></code> for details
+on output structure.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>If <code>method = "soundex"</code>, <code>max_dist</code> is automatically set to 0.5,
 since Soundex distance is 0 (match) or 1 (no match).</p>
+<p>When <code>by</code> maps multiple columns, the same <code>method</code>,
+<code>max_dist</code>, and any additional <code>stringdist</code> arguments are applied
+independently to each mapped column, and a row pair is kept only when all
+mapped columns satisfy the distance threshold.</p>
 <p>For single-column joins, fuzzystring uses adaptive candidate planning before
 calling <code><a href="https://rdrr.io/pkg/stringdist/man/stringdist.html" class="external-link">stringdist::stringdist()</a></code>. For Levenshtein-like methods
 (<code>"osa"</code>, <code>"lv"</code>, <code>"dl"</code>), a fast prefilter is applied: if
@@ -152,13 +159,15 @@ orchestration overhead while preserving the same matching semantics.</p>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   carat     cut color clarity depth table price    x    y    z approximate_name</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  0.23   Ideal     E     SI2  61.5    55   326 3.95 3.98 2.43             Idea</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  0.21 Premium     E     SI1  59.8    61   326 3.89 3.84 2.31          Premiom</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0.29 Premium     I     VS2  62.4    58   334 4.20 4.23 2.63          Premiom</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0.23   Ideal     J     VS1  62.8    56   340 3.93 3.90 2.46             Idea</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0.22 Premium     F     SI1  60.4    61   342 3.88 3.84 2.33          Premiom</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6  0.31   Ideal     J     SI2  62.2    54   344 4.35 4.37 2.71             Idea</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 11</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   carat cut   color clarity depth table price     x     y     z approximate_name</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;ord&gt;</span> <span style="color: #949494; font-style: italic;">&lt;ord&gt;</span> <span style="color: #949494; font-style: italic;">&lt;ord&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>  0.23 Ideal E     SI2      61.5    55   326  3.95  3.98  2.43 Idea            </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span>  0.21 Prem… E     SI1      59.8    61   326  3.89  3.84  2.31 Premiom         </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span>  0.29 Prem… I     VS2      62.4    58   334  4.2   4.23  2.63 Premiom         </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span>  0.23 Ideal J     VS1      62.8    56   340  3.93  3.9   2.46 Idea            </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span>  0.22 Prem… F     SI1      60.4    61   342  3.88  3.84  2.33 Premiom         </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span>  0.31 Ideal J     SI2      62.2    54   344  4.35  4.37  2.71 Idea            </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

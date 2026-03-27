@@ -83,7 +83,9 @@ fuzzystring_anti_join(x, y, by = NULL, distance_col = NULL, ...)
 
 ## Value
 
-A joined table (same container type as `x`). See
+A joined table that preserves the container class of `x`: `data.table`
+inputs return `data.table`, tibble inputs return tibble, and plain
+`data.frame` inputs return plain `data.frame`. See
 [`fuzzystring_join_backend`](https://paulesantos.github.io/fuzzystring/reference/fuzzystring_join_backend.md)
 for details on output structure.
 
@@ -91,6 +93,11 @@ for details on output structure.
 
 If `method = "soundex"`, `max_dist` is automatically set to 0.5, since
 Soundex distance is 0 (match) or 1 (no match).
+
+When `by` maps multiple columns, the same `method`, `max_dist`, and any
+additional `stringdist` arguments are applied independently to each
+mapped column, and a row pair is kept only when all mapped columns
+satisfy the distance threshold.
 
 For single-column joins, fuzzystring uses adaptive candidate planning
 before calling
@@ -115,12 +122,14 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
   )
   head(res)
 }
-#>   carat     cut color clarity depth table price    x    y    z approximate_name
-#> 1  0.23   Ideal     E     SI2  61.5    55   326 3.95 3.98 2.43             Idea
-#> 2  0.21 Premium     E     SI1  59.8    61   326 3.89 3.84 2.31          Premiom
-#> 3  0.29 Premium     I     VS2  62.4    58   334 4.20 4.23 2.63          Premiom
-#> 4  0.23   Ideal     J     VS1  62.8    56   340 3.93 3.90 2.46             Idea
-#> 5  0.22 Premium     F     SI1  60.4    61   342 3.88 3.84 2.33          Premiom
-#> 6  0.31   Ideal     J     SI2  62.2    54   344 4.35 4.37 2.71             Idea
+#> # A tibble: 6 × 11
+#>   carat cut   color clarity depth table price     x     y     z approximate_name
+#>   <dbl> <ord> <ord> <ord>   <dbl> <dbl> <int> <dbl> <dbl> <dbl> <chr>           
+#> 1  0.23 Ideal E     SI2      61.5    55   326  3.95  3.98  2.43 Idea            
+#> 2  0.21 Prem… E     SI1      59.8    61   326  3.89  3.84  2.31 Premiom         
+#> 3  0.29 Prem… I     VS2      62.4    58   334  4.2   4.23  2.63 Premiom         
+#> 4  0.23 Ideal J     VS1      62.8    56   340  3.93  3.9   2.46 Idea            
+#> 5  0.22 Prem… F     SI1      60.4    61   342  3.88  3.84  2.33 Premiom         
+#> 6  0.31 Ideal J     SI2      62.2    54   344  4.35  4.37  2.71 Idea            
 # }
 ```
