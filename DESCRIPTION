@@ -1,6 +1,6 @@
 Package: fuzzystring
 Title: Fast Fuzzy String Joins for Data Frames
-Version: 0.0.4
+Version: 0.0.5
 Authors@R: 
     c(person(given = "Paul E.",
            family = "Santos Andrade",
@@ -16,7 +16,7 @@ Description: Perform fuzzy joins on data frames using approximate string
     matching. Implements inner, left, right, full, semi, and anti joins with
     string distance metrics from the 'stringdist' package, including Optimal
     String Alignment, Levenshtein, Damerau-Levenshtein, Jaro-Winkler, q-gram,
-    cosine, jaccard, and Soundex. Uses a 'data.table' backend plus compiled
+    cosine, Jaccard, and Soundex. Uses a 'data.table' backend plus compiled
     'C++' result assembly to reduce overhead in large joins, while adaptive
     candidate planning avoids unnecessary distance evaluations in single-column
     string joins. Suitable for reconciling misspellings, inconsistent labels,

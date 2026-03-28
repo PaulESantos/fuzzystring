@@ -9,3 +9,5 @@ inst/doc
 ia_asistant
 pkg
 benchmarks
+*.tar.gz
+*.Rcheck/
