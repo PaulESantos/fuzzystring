@@ -1,5 +1,12 @@
 # Changelog
 
+## fuzzystring 0.0.5
+
+- Guard test bootstrap so CRAN pretests do not fail when `testthat` is
+  unavailable from `Suggests`.
+- Capitalized `Jaccard` in `DESCRIPTION` to avoid the incoming
+  feasibility note.
+
 ## fuzzystring 0.0.4
 
 ## fuzzystring 0.0.3

@@ -14,13 +14,13 @@ Source:
 [`DESCRIPTION`](https://github.com/PaulESantos/fuzzystring/blob/main/DESCRIPTION)
 
 Santos Andrade P (2026). *fuzzystring: Fast Fuzzy String Joins for Data
-Frames*. R package version 0.0.4,
+Frames*. R package version 0.0.5,
 <https://github.com/PaulESantos/fuzzystring>.
 
     @Manual{,
       title = {fuzzystring: Fast Fuzzy String Joins for Data Frames},
       author = {Paul E. {Santos Andrade}},
       year = {2026},
-      note = {R package version 0.0.4},
+      note = {R package version 0.0.5},
       url = {https://github.com/PaulESantos/fuzzystring},
     }
