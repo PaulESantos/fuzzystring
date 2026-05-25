@@ -202,7 +202,7 @@ precomputed CSV snapshot bundled in
 (<code>250</code>, <code>500</code>, and <code>750</code>), and 10
 repetitions per implementation. Across 30 method-size combinations,
 <strong>fuzzystring</strong> is faster in every case. The mean runtime
-ratio is 3.94x, meaning that, on average, <code>fuzzyjoin</code> takes
+ratio is 3.70x, meaning that, on average, <code>fuzzyjoin</code> takes
 almost four times as long as the reimplemented <code>fuzzystring</code>
 path on this benchmark snapshot.</p>
 </div>
@@ -314,9 +314,285 @@ in this document. It is displayed as reference only.</p>
 producing 30 aggregated method-size combinations. The table below
 reports mean runtime in milliseconds and the relative runtime ratio used
 throughout the figures.</p>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="14%">
+<col width="18%">
+<col width="18%">
+<col width="20%">
+<col width="28%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Method</th>
+<th align="right">Candidate comparisons (M)</th>
+<th align="right">Mean time: fuzzyjoin (ms)</th>
+<th align="right">Mean time: fuzzystring (ms)</th>
+<th align="right">Runtime ratio (fuzzyjoin / fuzzystring)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">OSA</td>
+<td align="right">5.03</td>
+<td align="right">1379.66</td>
+<td align="right">260.12</td>
+<td align="right">5.30</td>
+</tr>
+<tr class="even">
+<td align="left">OSA</td>
+<td align="right">10.07</td>
+<td align="right">1321.82</td>
+<td align="right">319.37</td>
+<td align="right">4.14</td>
+</tr>
+<tr class="odd">
+<td align="left">OSA</td>
+<td align="right">15.10</td>
+<td align="right">1537.76</td>
+<td align="right">346.41</td>
+<td align="right">4.44</td>
+</tr>
+<tr class="even">
+<td align="left">Levenshtein</td>
+<td align="right">5.03</td>
+<td align="right">951.85</td>
+<td align="right">171.38</td>
+<td align="right">5.55</td>
+</tr>
+<tr class="odd">
+<td align="left">Levenshtein</td>
+<td align="right">10.07</td>
+<td align="right">1262.07</td>
+<td align="right">253.99</td>
+<td align="right">4.97</td>
+</tr>
+<tr class="even">
+<td align="left">Levenshtein</td>
+<td align="right">15.10</td>
+<td align="right">1475.74</td>
+<td align="right">336.28</td>
+<td align="right">4.39</td>
+</tr>
+<tr class="odd">
+<td align="left">Damerau-Levenshtein</td>
+<td align="right">5.03</td>
+<td align="right">1026.49</td>
+<td align="right">246.08</td>
+<td align="right">4.17</td>
+</tr>
+<tr class="even">
+<td align="left">Damerau-Levenshtein</td>
+<td align="right">10.07</td>
+<td align="right">1468.94</td>
+<td align="right">431.47</td>
+<td align="right">3.40</td>
+</tr>
+<tr class="odd">
+<td align="left">Damerau-Levenshtein</td>
+<td align="right">15.10</td>
+<td align="right">1755.88</td>
+<td align="right">652.79</td>
+<td align="right">2.69</td>
+</tr>
+<tr class="even">
+<td align="left">Hamming</td>
+<td align="right">5.03</td>
+<td align="right">899.57</td>
+<td align="right">70.56</td>
+<td align="right">12.75</td>
+</tr>
+<tr class="odd">
+<td align="left">Hamming</td>
+<td align="right">10.07</td>
+<td align="right">1082.91</td>
+<td align="right">84.86</td>
+<td align="right">12.76</td>
+</tr>
+<tr class="even">
+<td align="left">Hamming</td>
+<td align="right">15.10</td>
+<td align="right">1281.25</td>
+<td align="right">103.52</td>
+<td align="right">12.38</td>
+</tr>
+<tr class="odd">
+<td align="left">LCS</td>
+<td align="right">5.03</td>
+<td align="right">946.51</td>
+<td align="right">293.02</td>
+<td align="right">3.23</td>
+</tr>
+<tr class="even">
+<td align="left">LCS</td>
+<td align="right">10.07</td>
+<td align="right">1171.63</td>
+<td align="right">585.67</td>
+<td align="right">2.00</td>
+</tr>
+<tr class="odd">
+<td align="left">LCS</td>
+<td align="right">15.10</td>
+<td align="right">1469.37</td>
+<td align="right">843.38</td>
+<td align="right">1.74</td>
+</tr>
+<tr class="even">
+<td align="left">Q-gram</td>
+<td align="right">5.03</td>
+<td align="right">1701.23</td>
+<td align="right">1142.17</td>
+<td align="right">1.49</td>
+</tr>
+<tr class="odd">
+<td align="left">Q-gram</td>
+<td align="right">10.07</td>
+<td align="right">2811.54</td>
+<td align="right">2220.70</td>
+<td align="right">1.27</td>
+</tr>
+<tr class="even">
+<td align="left">Q-gram</td>
+<td align="right">15.10</td>
+<td align="right">4040.81</td>
+<td align="right">3076.60</td>
+<td align="right">1.31</td>
+</tr>
+<tr class="odd">
+<td align="left">Cosine</td>
+<td align="right">5.03</td>
+<td align="right">2065.86</td>
+<td align="right">1453.69</td>
+<td align="right">1.42</td>
+</tr>
+<tr class="even">
+<td align="left">Cosine</td>
+<td align="right">10.07</td>
+<td align="right">3506.38</td>
+<td align="right">2946.15</td>
+<td align="right">1.19</td>
+</tr>
+<tr class="odd">
+<td align="left">Cosine</td>
+<td align="right">15.10</td>
+<td align="right">5097.47</td>
+<td align="right">3956.76</td>
+<td align="right">1.29</td>
+</tr>
+<tr class="even">
+<td align="left">Jaccard</td>
+<td align="right">5.03</td>
+<td align="right">1993.22</td>
+<td align="right">1447.84</td>
+<td align="right">1.38</td>
+</tr>
+<tr class="odd">
+<td align="left">Jaccard</td>
+<td align="right">10.07</td>
+<td align="right">3378.11</td>
+<td align="right">2822.45</td>
+<td align="right">1.20</td>
+</tr>
+<tr class="even">
+<td align="left">Jaccard</td>
+<td align="right">15.10</td>
+<td align="right">4829.91</td>
+<td align="right">3849.77</td>
+<td align="right">1.25</td>
+</tr>
+<tr class="odd">
+<td align="left">Jaro-Winkler</td>
+<td align="right">5.03</td>
+<td align="right">8522.48</td>
+<td align="right">2338.06</td>
+<td align="right">3.65</td>
+</tr>
+<tr class="even">
+<td align="left">Jaro-Winkler</td>
+<td align="right">10.07</td>
+<td align="right">17863.57</td>
+<td align="right">4505.01</td>
+<td align="right">3.97</td>
+</tr>
+<tr class="odd">
+<td align="left">Jaro-Winkler</td>
+<td align="right">15.10</td>
+<td align="right">44403.12</td>
+<td align="right">14057.21</td>
+<td align="right">3.16</td>
+</tr>
+<tr class="even">
+<td align="left">Soundex</td>
+<td align="right">5.03</td>
+<td align="right">2439.60</td>
+<td align="right">1262.86</td>
+<td align="right">1.93</td>
+</tr>
+<tr class="odd">
+<td align="left">Soundex</td>
+<td align="right">10.07</td>
+<td align="right">3757.79</td>
+<td align="right">2604.16</td>
+<td align="right">1.44</td>
+</tr>
+<tr class="even">
+<td align="left">Soundex</td>
+<td align="right">15.10</td>
+<td align="right">5168.49</td>
+<td align="right">4187.53</td>
+<td align="right">1.23</td>
+</tr>
+</tbody>
+</table>
 <p>The ranking below summarizes the average speedup by method. Larger
 values mean that <strong>fuzzystring</strong> is faster by a wider
 margin.</p>
+<table class="table">
+<thead><tr class="header">
+<th align="left">Method</th>
+<th align="right">Average runtime ratio</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Hamming</td>
+<td align="right">12.63</td>
+</tr>
+<tr class="even">
+<td align="left">Levenshtein</td>
+<td align="right">4.97</td>
+</tr>
+<tr class="odd">
+<td align="left">OSA</td>
+<td align="right">4.63</td>
+</tr>
+<tr class="even">
+<td align="left">Jaro-Winkler</td>
+<td align="right">3.59</td>
+</tr>
+<tr class="odd">
+<td align="left">Damerau-Levenshtein</td>
+<td align="right">3.42</td>
+</tr>
+<tr class="even">
+<td align="left">LCS</td>
+<td align="right">2.32</td>
+</tr>
+<tr class="odd">
+<td align="left">Soundex</td>
+<td align="right">1.54</td>
+</tr>
+<tr class="even">
+<td align="left">Q-gram</td>
+<td align="right">1.36</td>
+</tr>
+<tr class="odd">
+<td align="left">Cosine</td>
+<td align="right">1.30</td>
+</tr>
+<tr class="even">
+<td align="left">Jaccard</td>
+<td align="right">1.28</td>
+</tr>
+</tbody>
+</table>
 <div class="section level3">
 <h3 id="absolute-runtime">Absolute Runtime<a class="anchor" aria-label="anchor" href="#absolute-runtime"></a>
 </h3>

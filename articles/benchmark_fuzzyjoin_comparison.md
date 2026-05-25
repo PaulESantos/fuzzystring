@@ -131,7 +131,7 @@ in `inst/extdata/rbase_string_benchmark.csv`.
 The benchmark covers 10 distance methods, 3 sample sizes (`250`, `500`,
 and `750`), and 10 repetitions per implementation. Across 30 method-size
 combinations, **fuzzystring** is faster in every case. The mean runtime
-ratio is 3.94x, meaning that, on average, `fuzzyjoin` takes almost four
+ratio is 3.70x, meaning that, on average, `fuzzyjoin` takes almost four
 times as long as the reimplemented `fuzzystring` path on this benchmark
 snapshot.
 
@@ -245,8 +245,54 @@ producing 30 aggregated method-size combinations. The table below
 reports mean runtime in milliseconds and the relative runtime ratio used
 throughout the figures.
 
+| Method | Candidate comparisons (M) | Mean time: fuzzyjoin (ms) | Mean time: fuzzystring (ms) | Runtime ratio (fuzzyjoin / fuzzystring) |
+|:---|---:|---:|---:|---:|
+| OSA | 5.03 | 1379.66 | 260.12 | 5.30 |
+| OSA | 10.07 | 1321.82 | 319.37 | 4.14 |
+| OSA | 15.10 | 1537.76 | 346.41 | 4.44 |
+| Levenshtein | 5.03 | 951.85 | 171.38 | 5.55 |
+| Levenshtein | 10.07 | 1262.07 | 253.99 | 4.97 |
+| Levenshtein | 15.10 | 1475.74 | 336.28 | 4.39 |
+| Damerau-Levenshtein | 5.03 | 1026.49 | 246.08 | 4.17 |
+| Damerau-Levenshtein | 10.07 | 1468.94 | 431.47 | 3.40 |
+| Damerau-Levenshtein | 15.10 | 1755.88 | 652.79 | 2.69 |
+| Hamming | 5.03 | 899.57 | 70.56 | 12.75 |
+| Hamming | 10.07 | 1082.91 | 84.86 | 12.76 |
+| Hamming | 15.10 | 1281.25 | 103.52 | 12.38 |
+| LCS | 5.03 | 946.51 | 293.02 | 3.23 |
+| LCS | 10.07 | 1171.63 | 585.67 | 2.00 |
+| LCS | 15.10 | 1469.37 | 843.38 | 1.74 |
+| Q-gram | 5.03 | 1701.23 | 1142.17 | 1.49 |
+| Q-gram | 10.07 | 2811.54 | 2220.70 | 1.27 |
+| Q-gram | 15.10 | 4040.81 | 3076.60 | 1.31 |
+| Cosine | 5.03 | 2065.86 | 1453.69 | 1.42 |
+| Cosine | 10.07 | 3506.38 | 2946.15 | 1.19 |
+| Cosine | 15.10 | 5097.47 | 3956.76 | 1.29 |
+| Jaccard | 5.03 | 1993.22 | 1447.84 | 1.38 |
+| Jaccard | 10.07 | 3378.11 | 2822.45 | 1.20 |
+| Jaccard | 15.10 | 4829.91 | 3849.77 | 1.25 |
+| Jaro-Winkler | 5.03 | 8522.48 | 2338.06 | 3.65 |
+| Jaro-Winkler | 10.07 | 17863.57 | 4505.01 | 3.97 |
+| Jaro-Winkler | 15.10 | 44403.12 | 14057.21 | 3.16 |
+| Soundex | 5.03 | 2439.60 | 1262.86 | 1.93 |
+| Soundex | 10.07 | 3757.79 | 2604.16 | 1.44 |
+| Soundex | 15.10 | 5168.49 | 4187.53 | 1.23 |
+
 The ranking below summarizes the average speedup by method. Larger
 values mean that **fuzzystring** is faster by a wider margin.
+
+| Method              | Average runtime ratio |
+|:--------------------|----------------------:|
+| Hamming             |                 12.63 |
+| Levenshtein         |                  4.97 |
+| OSA                 |                  4.63 |
+| Jaro-Winkler        |                  3.59 |
+| Damerau-Levenshtein |                  3.42 |
+| LCS                 |                  2.32 |
+| Soundex             |                  1.54 |
+| Q-gram              |                  1.36 |
+| Cosine              |                  1.30 |
+| Jaccard             |                  1.28 |
 
 ### Absolute Runtime
 
