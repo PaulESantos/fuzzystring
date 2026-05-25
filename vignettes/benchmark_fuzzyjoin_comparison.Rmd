@@ -251,14 +251,14 @@ The benchmark spans 10 string distance methods and 3 sample sizes, producing 30
 aggregated method-size combinations. The table below reports mean runtime in
 milliseconds and the relative runtime ratio used throughout the figures.
 
-```{r summary-table, include=FALSE}
+```{r summary-table, echo=FALSE}
 knitr::kable(summary_table, align = "lrrrr")
 ```
 
 The ranking below summarizes the average speedup by method. Larger values mean
 that **fuzzystring** is faster by a wider margin.
 
-```{r ranking-table, include=FALSE}
+```{r ranking-table, echo=FALSE}
 knitr::kable(ranking_table, align = "lr")
 ```
 
