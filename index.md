@@ -32,6 +32,7 @@ The package includes:
 ## Installation
 
 ``` r
+
 # Install from CRAN
 install.packages("fuzzystring")
 
@@ -43,6 +44,7 @@ install.packages("fuzzystring")
 ## Quick start
 
 ``` r
+
 library(fuzzystring)
 
 x <- data.frame(
@@ -66,6 +68,7 @@ fuzzystring_inner_join(
 ## Join families
 
 ``` r
+
 fuzzystring_inner_join(x, y, by = c(name = "approx_name"), max_dist = 2)
 fuzzystring_left_join(x, y, by = c(name = "approx_name"), max_dist = 2)
 fuzzystring_right_join(x, y, by = c(name = "approx_name"), max_dist = 2)
@@ -77,6 +80,7 @@ fuzzystring_anti_join(x, y, by = c(name = "approx_name"), max_dist = 2)
 ## Distance methods
 
 ``` r
+
 fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "osa")
 fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "dl")
 fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "jw")
@@ -86,6 +90,7 @@ fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "soundex")
 ## Case-insensitive matching
 
 ``` r
+
 fuzzystring_inner_join(
   x, y,
   by = c(name = "approx_name"),
@@ -100,6 +105,7 @@ The package ships with `misspellings`, a dataset of common misspellings
 adapted from Wikipedia for examples and testing.
 
 ``` r
+
 data(misspellings)
 head(misspellings)
 ```
@@ -131,6 +137,7 @@ can match across more than one string column by applying the same
 distance method and threshold to each mapped column.
 
 ``` r
+
 x_multi <- data.frame(
   first = c("Jon", "Maira"),
   last = c("Smyth", "Gonzales")

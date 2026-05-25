@@ -1,6 +1,7 @@
 # Getting Started with fuzzystring
 
 ``` r
+
 library(fuzzystring)
 ```
 
@@ -17,12 +18,14 @@ distance evaluations in single-column joins.
 You can install **fuzzystring** from CRAN:
 
 ``` r
+
 install.packages("fuzzystring")
 ```
 
 You can also install the development version from GitHub:
 
 ``` r
+
 # Using pak (recommended)
 # pak::pak("PaulESantos/fuzzystring")
 
@@ -35,6 +38,7 @@ You can also install the development version from GitHub:
 Here’s a simple example matching diamond cuts with slight misspellings:
 
 ``` r
+
 # Your messy data
 x <- data.frame(
   name = c("Idea", "Premiom", "Very Good"), 
@@ -69,6 +73,7 @@ reusable example dataset so you can compare the behavior of each join
 family.
 
 ``` r
+
 x_join <- data.frame(
   name = c("Idea", "Premiom", "Very Good", "Gooood"),
   id = 1:4
@@ -96,6 +101,7 @@ y_join <- data.frame(
 #### Inner join
 
 ``` r
+
 fuzzystring_inner_join(
   x_join, y_join,
   by = c(name = "approx_name"),
@@ -112,6 +118,7 @@ fuzzystring_inner_join(
 #### Left join
 
 ``` r
+
 fuzzystring_left_join(
   x_join, y_join,
   by = c(name = "approx_name"),
@@ -128,6 +135,7 @@ fuzzystring_left_join(
 #### Right join
 
 ``` r
+
 fuzzystring_right_join(
   x_join, y_join,
   by = c(name = "approx_name"),
@@ -144,6 +152,7 @@ fuzzystring_right_join(
 #### Full join
 
 ``` r
+
 fuzzystring_full_join(
   x_join, y_join,
   by = c(name = "approx_name"),
@@ -160,6 +169,7 @@ fuzzystring_full_join(
 #### Semi join (rows from `x` with a match in `y`)
 
 ``` r
+
 fuzzystring_semi_join(
   x_join, y_join,
   by = c(name = "approx_name"),
@@ -175,6 +185,7 @@ fuzzystring_semi_join(
 #### Anti join (rows from `x` without a match in `y`)
 
 ``` r
+
 fuzzystring_anti_join(
   x_join, y_join,
   by = c(name = "approx_name"),
@@ -191,6 +202,7 @@ If you prefer a single entry point, you can use
 directly by specifying `mode`.
 
 ``` r
+
 fuzzystring_join(
   x_join, y_join,
   by = c(name = "approx_name"),
@@ -211,6 +223,7 @@ You can choose from various distance metrics provided by the
 `stringdist` package:
 
 ``` r
+
 # Optimal String Alignment (default)
 fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "osa")
 
@@ -229,6 +242,7 @@ fuzzystring_inner_join(x, y, by = c(name = "approx_name"), method = "soundex")
 Use `ignore_case = TRUE` to ignore capitalization:
 
 ``` r
+
 fuzzystring_inner_join(
   x, y, 
   by = c(name = "approx_name"),
@@ -245,6 +259,7 @@ You can match on multiple string columns at once. The same distance
 method and threshold are applied to each mapped column.
 
 ``` r
+
 x_multi <- data.frame(
   first = c("Jon", "Maira"),
   last = c("Smyth", "Gonzales")

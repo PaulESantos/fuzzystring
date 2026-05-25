@@ -23,23 +23,12 @@ An object of class `tbl_df` (inherits from `tbl`, `data.frame`) with
 ## Examples
 
 ``` r
+
 # \donttest{
+if (interactive()) {
 library(rvest)
 library(readr)
-#> 
-#> Attaching package: ‘readr’
-#> The following object is masked from ‘package:rvest’:
-#> 
-#>     guess_encoding
 library(dplyr)
-#> 
-#> Attaching package: ‘dplyr’
-#> The following objects are masked from ‘package:stats’:
-#> 
-#>     filter, lag
-#> The following objects are masked from ‘package:base’:
-#> 
-#>     intersect, setdiff, setequal, union
 library(stringr)
 library(tidyr)
 
@@ -56,20 +45,6 @@ misspellings <- h %>%
                                                1, -2)) |>
   separate_rows(correct, sep = ", ") |>
   filter(Encoding(correct) != "UTF-8")
-#> Warning: The `file` argument of `read_delim()` should use `I()` for literal data as of
-#> readr 2.2.0.
-#>   
-#>   # Bad (for example):
-#>   read_csv("x,y\n1,2")
-#>   
-#>   # Good:
-#>   read_csv(I("x,y\n1,2"))
-#> Rows: 4309 Columns: 2
-#> ── Column specification ────────────────────────────────────────────────────────
-#> Delimiter: ">"
-#> chr (2): misspelling, correct
-#> 
-#> ℹ Use `spec()` to retrieve the full column specification for this data.
-#> ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+}
 # }
 ```

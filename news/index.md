@@ -2,6 +2,8 @@
 
 ## fuzzystring 0.0.5
 
+CRAN release: 2026-03-28
+
 - Guard test bootstrap so CRAN pretests do not fail when `testthat` is
   unavailable from `Suggests`.
 - Capitalized `Jaccard` in `DESCRIPTION` to avoid the incoming

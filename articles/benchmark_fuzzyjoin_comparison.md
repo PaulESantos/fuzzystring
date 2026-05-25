@@ -1,6 +1,7 @@
 # Benchmarking fuzzystring against fuzzyjoin
 
 ``` r
+
 library(dplyr)
 #> 
 #> Attaching package: 'dplyr'
@@ -140,6 +141,7 @@ The script below is the benchmark used to generate the CSV analyzed in
 this document. It is displayed as reference only.
 
 ``` r
+
 library(microbenchmark)
 library(fuzzyjoin)
 library(fuzzystring)
@@ -249,6 +251,7 @@ values mean that **fuzzystring** is faster by a wider margin.
 ### Absolute Runtime
 
 ``` r
+
 ggplot(
   absolute_plot_data,
   aes(x = comparisons_label, y = time_seconds, fill = implementation)
@@ -284,6 +287,7 @@ Values above 1 indicate that **fuzzystring** is faster than
 **fuzzyjoin** for the same method and workload size.
 
 ``` r
+
 ggplot(
   wide_summary,
   aes(x = comparisons_label, y = runtime_ratio)

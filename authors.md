@@ -3,7 +3,8 @@
 ## Authors
 
 - **[Paul E. Santos Andrade](https://paulefrensa.rbind.io/)**. Author,
-  maintainer. [](https://orcid.org/0000-0002-6635-0375)
+  maintainer, copyright holder.
+  [](https://orcid.org/0000-0002-6635-0375)
 
 - **David Robinson**. Contributor.  
   aut of fuzzyjoin

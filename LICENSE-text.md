@@ -1,4 +1,4 @@
 # License
 
     YEAR: 2026
-    COPYRIGHT HOLDER: fuzzystring
+    COPYRIGHT HOLDER: Paul E. Santos Andrade

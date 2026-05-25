@@ -3,8 +3,8 @@
 `fuzzystring` provides fuzzy inner, left, right, full, semi, and anti
 joins for `data.frame` and `data.table` objects using approximate string
 matching. It combines `stringdist` metrics with a `data.table` backend
-and compiled C++ result assembly to reduce overhead in large joins while
-preserving familiar join semantics.
+and compiled 'C++' result assembly to reduce overhead in large joins
+while preserving familiar join semantics.
 
 ## Details
 
@@ -35,7 +35,12 @@ Useful links:
 ## Author
 
 **Maintainer**: Paul E. Santos Andrade <paulefrens@gmail.com>
-([ORCID](https://orcid.org/0000-0002-6635-0375))
+([ORCID](https://orcid.org/0000-0002-6635-0375)) \[copyright holder\]
+
+Authors:
+
+- Paul E. Santos Andrade <paulefrens@gmail.com>
+  ([ORCID](https://orcid.org/0000-0002-6635-0375)) \[copyright holder\]
 
 Other contributors:
 
