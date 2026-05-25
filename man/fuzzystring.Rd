@@ -8,7 +8,7 @@
 \description{
 \code{fuzzystring} provides fuzzy inner, left, right, full, semi, and anti joins
 for \code{data.frame} and \code{data.table} objects using approximate string matching.
-It combines \code{stringdist} metrics with a \code{data.table} backend and compiled C++
+It combines \code{stringdist} metrics with a \code{data.table} backend and compiled 'C++'
 result assembly to reduce overhead in large joins while preserving familiar
 join semantics.
 }
@@ -30,7 +30,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Paul E. Santos Andrade \email{paulefrens@gmail.com} (\href{https://orcid.org/0000-0002-6635-0375}{ORCID})
+\strong{Maintainer}: Paul E. Santos Andrade \email{paulefrens@gmail.com} (\href{https://orcid.org/0000-0002-6635-0375}{ORCID}) [copyright holder]
+
+Authors:
+\itemize{
+  \item Paul E. Santos Andrade \email{paulefrens@gmail.com} (\href{https://orcid.org/0000-0002-6635-0375}{ORCID}) [copyright holder]
+}
 
 Other contributors:
 \itemize{

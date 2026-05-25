@@ -9,5 +9,9 @@
 ^docs$
 ^pkgdown$
 ^ia_asistant$
+^ia_assistant$
+^\.agents$
 ^benchmarks$
 ^pkg$
+^\.positai$
+^\.claude$

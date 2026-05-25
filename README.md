@@ -7,8 +7,8 @@
 [![CRAN status](https://www.r-pkg.org/badges/version/fuzzystring)](https://CRAN.R-project.org/package=fuzzystring)
 [![R-CMD-check](https://github.com/PaulESantos/fuzzystring/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PaulESantos/fuzzystring/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html)
-[![](http://cranlogs.r-pkg.org/badges/grand-total/fuzzystring?color=blue)](https://cran.r-project.org/package=fuzzystring)
-[![](http://cranlogs.r-pkg.org/badges/last-week/fuzzystring?color=blue)](https://cran.r-project.org/package=fuzzystring)
+[![](https://cranlogs.r-pkg.org/badges/grand-total/fuzzystring?color=blue)](https://cran.r-project.org/package=fuzzystring)
+[![](https://cranlogs.r-pkg.org/badges/last-week/fuzzystring?color=blue)](https://cran.r-project.org/package=fuzzystring)
 <!-- badges: end -->
 
 **fuzzystring** provides fast, flexible fuzzy string joins for `data.frame` and

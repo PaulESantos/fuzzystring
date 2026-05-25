@@ -8,6 +8,7 @@
 #' @examples
 #'
 #' \donttest{
+#' if (interactive()) {
 #' library(rvest)
 #' library(readr)
 #' library(dplyr)
@@ -27,6 +28,7 @@
 #'                                                1, -2)) |>
 #'   separate_rows(correct, sep = ", ") |>
 #'   filter(Encoding(correct) != "UTF-8")
+#' }
 #' }
 #'
 #' @source

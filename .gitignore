@@ -1,13 +1,26 @@
-.Rproj.user
+# --- R/RStudio internals ---
+.Rproj.user/
 .Rhistory
 .RData
-.httr-oauth
-.DS_Store
-.quarto
-docs
-inst/doc
-ia_asistant
-pkg
-benchmarks
+.Ruserdata
+
+# --- R package development ---
 *.tar.gz
 *.Rcheck/
+inst/doc/
+doc/
+
+# --- IDEs and Text Editors ---
+.DS_Store
+.quarto/
+.positai/
+
+# --- Project specific / Data & Outputs ---
+docs/
+pkg/
+benchmarks/
+ia_asistant/
+
+# --- Agents & Environment ---
+.agents
+.httr-oauth

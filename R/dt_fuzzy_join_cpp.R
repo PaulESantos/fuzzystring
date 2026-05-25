@@ -215,11 +215,10 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
       stop("Length of match_fun not equal to columns specified in 'by'.", call. = FALSE)
     }
 
-    parts <- vector("list", length(by2$x))
-
-    for (i in seq_along(by2$x)) {
-      xcol <- by2$x[i]
-      ycol <- by2$y[i]
+    if (length(by2$x) > 1L) {
+      # Multi-column progressive short-circuiting matching
+      xcol <- by2$x[1L]
+      ycol <- by2$y[1L]
 
       ix <- group_indices_1col(x_dt, xcol)
       iy <- group_indices_1col(y_dt, ycol)
@@ -230,11 +229,7 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
       n_x <- length(ux)
       n_y <- length(uy)
 
-      mf <- if (!is.null(names(mf_list))) {
-        mf_list[[xcol]]
-      } else {
-        mf_list[[i]]
-      }
+      mf <- if (!is.null(names(mf_list))) mf_list[[xcol]] else mf_list[[1L]]
 
       m <- mf(rep(ux, times = n_y), rep(uy, each = n_x), ...)
 
@@ -249,51 +244,109 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
 
       w <- which(m) - 1L
       if (length(w) == 0L) {
-        parts[[i]] <- data.table::data.table(i = numeric(0), x = numeric(0), y = numeric(0))
-        next
-      }
-
-      gx <- (w %% n_x) + 1L
-      gy <- (w %/% n_x) + 1L
-
-      x_lists <- ix$indices[gx]
-      y_lists <- iy$indices[gy]
-
-      expd <- expand_index_lists(x_lists, y_lists)
-      ret <- data.table::data.table(i = i, x = expd$x, y = expd$y)
-
-      if (!is.null(extra_dt)) {
-        extra_rep <- replicate_extras(extra_dt, w + 1L, expd$x_len, expd$y_len)
-        ret <- data.table::as.data.table(cbind(ret, extra_rep))
-      }
-
-      parts[[i]] <- ret
-    }
-
-    matches <- data.table::rbindlist(parts, use.names = TRUE, fill = TRUE)
-
-    if (length(by2$x) > 1L) {
-      accept <- matches[, .N, by = .(x, y)][N == length(by2$x), .(x, y)]
-      matches <- matches[accept, on = .(x, y), nomatch = 0L]
-
-      extra_cols <- setdiff(names(matches), c("i", "x", "y"))
-      if (length(extra_cols) > 0L) {
-        matches[, name := by2$x[i]]
-
-        formula_str <- paste0("x + y ~ name")
-        matches_wide <- data.table::dcast(
-          matches,
-          as.formula(formula_str),
-          value.var = extra_cols,
-          fun.aggregate = function(x) x[1L]
-        )
-        matches <- matches_wide
+        matches <- data.table::data.table(x = integer(0), y = integer(0))
       } else {
-        matches <- unique(matches[, .(x, y)])
+        gx <- (w %% n_x) + 1L
+        gy <- (w %/% n_x) + 1L
+
+        x_lists <- ix$indices[gx]
+        y_lists <- iy$indices[gy]
+
+        expd <- expand_index_lists(x_lists, y_lists)
+        matches <- data.table::data.table(x = expd$x, y = expd$y)
+
+        if (!is.null(extra_dt)) {
+          extra_rep <- replicate_extras(extra_dt, w + 1L, expd$x_len, expd$y_len)
+          matches <- data.table::as.data.table(cbind(matches, extra_rep))
+          extra_cols <- setdiff(names(matches), c("x", "y"))
+          if (length(extra_cols) > 0L) {
+            data.table::setnames(matches, extra_cols, xcol)
+          }
+        }
       }
+
+      if (nrow(matches) > 0L) {
+        for (i in 2:length(by2$x)) {
+          xcol <- by2$x[i]
+          ycol <- by2$y[i]
+
+          # Extract actual values for candidate row pairs
+          v1 <- x_dt[[xcol]][matches$x]
+          v2 <- y_dt[[ycol]][matches$y]
+
+          mf <- if (!is.null(names(mf_list))) mf_list[[xcol]] else mf_list[[i]]
+          m <- mf(v1, v2, ...)
+
+          extra_dt <- NULL
+          if (data.table::is.data.table(m) || is.data.frame(m)) {
+            m_dt <- data.table::as.data.table(m)
+            if (ncol(m_dt) > 1L) extra_dt <- m_dt[, -1, with = FALSE]
+            m <- m_dt[[1]]
+          }
+
+          if (!is.logical(m)) stop("match_fun must return logical or a data.frame/data.table whose first column is logical.", call. = FALSE)
+
+          keep <- which(m)
+          if (length(keep) == 0L) {
+            matches <- data.table::data.table(x = integer(0), y = integer(0))
+            break
+          }
+
+          matches <- matches[keep]
+
+          if (!is.null(extra_dt)) {
+            extra_rep <- extra_dt[keep]
+            extra_cols <- names(extra_rep)
+            data.table::setnames(extra_rep, extra_cols, xcol)
+            matches <- data.table::as.data.table(cbind(matches, extra_rep))
+          }
+        }
+      }
+
     } else {
-      if (ncol(matches) == 3L) {
-        matches <- unique(matches[, .(x, y)])
+      # Single-column match: remains exactly as original (fastest path for 1 col)
+      xcol <- by2$x[1L]
+      ycol <- by2$y[1L]
+
+      ix <- group_indices_1col(x_dt, xcol)
+      iy <- group_indices_1col(y_dt, ycol)
+
+      ux <- ix[[xcol]]
+      uy <- iy[[ycol]]
+
+      n_x <- length(ux)
+      n_y <- length(uy)
+
+      mf <- if (!is.null(names(mf_list))) mf_list[[xcol]] else mf_list[[1L]]
+
+      m <- mf(rep(ux, times = n_y), rep(uy, each = n_x), ...)
+
+      extra_dt <- NULL
+      if (data.table::is.data.table(m) || is.data.frame(m)) {
+        m_dt <- data.table::as.data.table(m)
+        if (ncol(m_dt) > 1L) extra_dt <- m_dt[, -1, with = FALSE]
+        m <- m_dt[[1]]
+      }
+
+      if (!is.logical(m)) stop("match_fun must return logical or a data.frame/data.table whose first column is logical.", call. = FALSE)
+
+      w <- which(m) - 1L
+      if (length(w) == 0L) {
+        matches <- data.table::data.table(x = integer(0), y = integer(0))
+      } else {
+        gx <- (w %% n_x) + 1L
+        gy <- (w %/% n_x) + 1L
+
+        x_lists <- ix$indices[gx]
+        y_lists <- iy$indices[gy]
+
+        expd <- expand_index_lists(x_lists, y_lists)
+        matches <- data.table::data.table(x = expd$x, y = expd$y)
+
+        if (!is.null(extra_dt)) {
+          extra_rep <- replicate_extras(extra_dt, w + 1L, expd$x_len, expd$y_len)
+          matches <- data.table::as.data.table(cbind(matches, extra_rep))
+        }
       }
     }
 

@@ -2,7 +2,7 @@
 #'
 #' `fuzzystring` provides fuzzy inner, left, right, full, semi, and anti joins
 #' for `data.frame` and `data.table` objects using approximate string matching.
-#' It combines `stringdist` metrics with a `data.table` backend and compiled C++
+#' It combines `stringdist` metrics with a `data.table` backend and compiled 'C++'
 #' result assembly to reduce overhead in large joins while preserving familiar
 #' join semantics.
 #'

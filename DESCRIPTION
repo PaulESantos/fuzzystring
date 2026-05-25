@@ -4,7 +4,7 @@ Version: 0.0.5
 Authors@R: 
     c(person(given = "Paul E.",
            family = "Santos Andrade",
-           role = c("aut", "cre"),
+           role = c("aut", "cre", "cph"),
            email = "paulefrens@gmail.com",
            comment = c(ORCID = "0000-0002-6635-0375")),
            person(given = "David",
@@ -21,7 +21,9 @@ Description: Perform fuzzy joins on data frames using approximate string
     candidate planning avoids unnecessary distance evaluations in single-column
     string joins. Suitable for reconciling misspellings, inconsistent labels,
     and other near-match identifiers while optionally returning the computed
-    distance for each match.
+    distance for each match. Bibliographic references include Van der Loo, M.
+    P. J. (2014) <https://CRAN.R-project.org/package=stringdist> and Robinson,
+    D. (2015) <https://github.com/dgrtwo/fuzzyjoin>.
 License: MIT + file LICENSE
 Depends:
     R (>= 4.1)
@@ -47,8 +49,8 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 URL: https://github.com/PaulESantos/fuzzystring, https://paulesantos.github.io/fuzzystring/
 BugReports: https://github.com/PaulESantos/fuzzystring/issues
 VignetteBuilder: knitr
 Maintainer: Paul E. Santos Andrade <paulefrens@gmail.com>
+Config/roxygen2/version: 8.0.0

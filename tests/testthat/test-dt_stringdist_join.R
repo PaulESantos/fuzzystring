@@ -397,3 +397,43 @@ test_that("tbl_df inputs return tbl_df outputs", {
   expect_s3_class(res_anti, "tbl_df")
   expect_false(data.table::is.data.table(res_anti))
 })
+
+test_that("multi-column progressive join works correctly", {
+  skip_if_not_installed("data.table")
+  skip_if_not_installed("stringdist")
+
+  a <- data.table::data.table(
+    first = c("John", "Alice", "Bob"),
+    last  = c("Smith", "Smith", "Jones"),
+    age   = c(30, 25, 40)
+  )
+  b <- data.table::data.table(
+    fname = c("Jon", "Alise", "Bob"),
+    lname = c("Smit", "Smith", "Jones"),
+    score = c(100, 200, 300)
+  )
+
+  # Inner join on first name and last name
+  res <- fuzzystring_inner_join(
+    a, b,
+    by = c(first = "fname", last = "lname"),
+    max_dist = 1,
+    distance_col = "dist"
+  )
+
+  # John/Jon and Smith/Smit match (dist <= 1 on both)
+  # Alice/Alise and Smith/Smith match (dist <= 1 on both)
+  # Bob/Bob and Jones/Jones match (dist 0 on both)
+  expect_equal(nrow(res), 3L)
+  expect_equal(res$first, c("John", "Alice", "Bob"))
+  expect_equal(res$fname, c("Jon", "Alise", "Bob"))
+
+  # Semi join works
+  res_semi <- fuzzystring_semi_join(
+    a, b,
+    by = c(first = "fname", last = "lname"),
+    max_dist = 1
+  )
+  expect_equal(nrow(res_semi), 3L)
+})
+

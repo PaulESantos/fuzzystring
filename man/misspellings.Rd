@@ -22,6 +22,7 @@ dataset from Wikipedia, see the example code below.
 \examples{
 
 \donttest{
+if (interactive()) {
 library(rvest)
 library(readr)
 library(dplyr)
@@ -41,6 +42,7 @@ misspellings <- h \%>\%
                                                1, -2)) |>
   separate_rows(correct, sep = ", ") |>
   filter(Encoding(correct) != "UTF-8")
+}
 }
 
 }
