@@ -1,5 +1,7 @@
 # Changelog
 
+## fuzzystring 0.0.6
+
 ## fuzzystring 0.0.5
 
 CRAN release: 2026-03-28
