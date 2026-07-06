@@ -9,6 +9,9 @@
 *.Rcheck/
 inst/doc/
 doc/
+src/*.o
+src/*.so
+src/*.dll
 
 # --- IDEs and Text Editors ---
 .DS_Store

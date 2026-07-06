@@ -1,8 +1,9 @@
 fst_expand_match_indices <- function(x_lists, y_lists) {
   x_len <- lengths(x_lists)
   y_len <- lengths(y_lists)
-  rep_counts <- x_len * y_len
-  total_size <- sum(rep_counts)
+  sizes <- fst_checked_cartesian_sizes(x_len, y_len)
+  rep_counts <- sizes$rep_counts
+  total_size <- sizes$total_size
 
   if (total_size == 0L) {
     return(list(x = integer(0), y = integer(0), rep_counts = integer(0)))
@@ -38,9 +39,61 @@ fst_is_length_pruned_method <- function(method) {
   method %in% c("osa", "lv", "dl", "hamming")
 }
 
-fst_choose_target_pairs <- function(method, n_rows_x, n_rows_y,
-                                    n_unique_x, n_unique_y,
-                                    base_target_pairs = 250000L) {
+fst_can_use_exact_join <- function(method, max_dist, extra_args) {
+  identical(max_dist, 0) &&
+    method %in% c("osa", "lv", "dl", "hamming", "lcs", "jw") &&
+    length(extra_args) == 0L
+}
+
+fst_exact_match_indices <- function(d1, d2, ignore_case, distance_col) {
+  key_names <- paste0(".fst_key_", seq_along(d1))
+  normalize <- function(data) {
+    columns <- lapply(data, as.character)
+    if (ignore_case) {
+      columns <- lapply(columns, tolower)
+    }
+    result <- data.table::as.data.table(columns)
+    data.table::setnames(result, key_names)
+    result
+  }
+
+  x_keys <- normalize(d1)
+  y_keys <- normalize(d2)
+  data.table::set(x_keys, j = "x", value = seq_len(nrow(x_keys)))
+  data.table::set(y_keys, j = "y", value = seq_len(nrow(y_keys)))
+  x_keys <- x_keys[stats::complete.cases(x_keys)]
+  y_keys <- y_keys[stats::complete.cases(y_keys)]
+
+  if (nrow(x_keys) == 0L || nrow(y_keys) == 0L) {
+    return(data.table::data.table(x = integer(), y = integer()))
+  }
+
+  matches <- merge(
+    x_keys,
+    y_keys,
+    by = key_names,
+    sort = FALSE,
+    allow.cartesian = TRUE
+  )
+  matches <- matches[, c("x", "y"), with = FALSE]
+  if (!is.null(distance_col)) {
+    data.table::set(
+      matches,
+      j = distance_col,
+      value = rep.int(0, nrow(matches))
+    )
+  }
+  matches
+}
+
+fst_choose_target_pairs <- function(
+  method,
+  n_rows_x,
+  n_rows_y,
+  n_unique_x,
+  n_unique_y,
+  base_target_pairs = 250000L
+) {
   if (fst_is_length_pruned_method(method)) {
     return(as.integer(base_target_pairs))
   }
@@ -62,9 +115,14 @@ fst_choose_target_pairs <- function(method, n_rows_x, n_rows_y,
   as.integer(base_target_pairs)
 }
 
-fst_use_dense_unique_block <- function(method, n_rows_x, n_rows_y,
-                                       n_unique_x, n_unique_y,
-                                       max_pairs = 12000000L) {
+fst_use_dense_unique_block <- function(
+  method,
+  n_rows_x,
+  n_rows_y,
+  n_unique_x,
+  n_unique_y,
+  max_pairs = 12000000L
+) {
   if (fst_is_length_pruned_method(method)) {
     return(FALSE)
   }
@@ -80,9 +138,16 @@ fst_use_dense_unique_block <- function(method, n_rows_x, n_rows_y,
   pair_count <= max_pairs && avg_dup_x <= 2 && avg_dup_y <= 2
 }
 
-fst_stringdist_eval_block <- function(x_vals, y_vals, x_rows, y_rows,
-                                      method, max_dist, distance_col,
-                                      extra_args = list()) {
+fst_stringdist_eval_block <- function(
+  x_vals,
+  y_vals,
+  x_rows,
+  y_rows,
+  method,
+  max_dist,
+  distance_col,
+  extra_args = list()
+) {
   n_x <- length(x_vals)
   n_y <- length(y_vals)
   if (n_x == 0L || n_y == 0L) {
@@ -117,11 +182,16 @@ fst_stringdist_eval_block <- function(x_vals, y_vals, x_rows, y_rows,
   out
 }
 
-fst_stringdist_single_col_matches <- function(v1, v2, max_dist, method,
-                                              ignore_case = FALSE,
-                                              distance_col = NULL,
-                                              extra_args = list(),
-                                              target_pairs = 250000L) {
+fst_stringdist_single_col_matches <- function(
+  v1,
+  v2,
+  max_dist,
+  method,
+  ignore_case = FALSE,
+  distance_col = NULL,
+  extra_args = list(),
+  target_pairs = 250000L
+) {
   v1 <- as.character(v1)
   v2 <- as.character(v2)
 
@@ -158,13 +228,15 @@ fst_stringdist_single_col_matches <- function(v1, v2, max_dist, method,
     y_groups[, nchars := nchar(value, type = "chars")]
   }
 
-  if (fst_use_dense_unique_block(
-    method = method,
-    n_rows_x = length(v1),
-    n_rows_y = length(v2),
-    n_unique_x = nrow(x_groups),
-    n_unique_y = nrow(y_groups)
-  )) {
+  if (
+    fst_use_dense_unique_block(
+      method = method,
+      n_rows_x = length(v1),
+      n_rows_y = length(v2),
+      n_unique_x = nrow(x_groups),
+      n_unique_y = nrow(y_groups)
+    )
+  ) {
     return(fst_stringdist_eval_block(
       x_vals = x_groups$value,
       y_vals = y_groups$value,
@@ -208,8 +280,14 @@ fst_stringdist_single_col_matches <- function(v1, v2, max_dist, method,
           next
         }
 
-        y_block_size <- fst_chunk_size_y(length(x_ids), target_pairs = target_pairs)
-        y_splits <- split(y_ids_all, ceiling(seq_along(y_ids_all) / y_block_size))
+        y_block_size <- fst_chunk_size_y(
+          length(x_ids),
+          target_pairs = target_pairs
+        )
+        y_splits <- split(
+          y_ids_all,
+          ceiling(seq_along(y_ids_all) / y_block_size)
+        )
 
         for (y_ids in y_splits) {
           parts[[length(parts) + 1L]] <- fst_stringdist_eval_block(
@@ -283,6 +361,8 @@ fst_stringdist_single_col_matches <- function(v1, v2, max_dist, method,
 #' \code{max_dist}, and any additional \code{stringdist} arguments are applied
 #' independently to each mapped column, and a row pair is kept only when all
 #' mapped columns satisfy the distance threshold.
+#' When `distance_col` is requested for a multi-column join, it contains the
+#' maximum distance across the mapped columns for each matched row pair.
 #'
 #' For single-column joins, fuzzystring uses adaptive candidate planning before
 #' calling \code{stringdist::stringdist()}. For Levenshtein-like methods
@@ -291,6 +371,9 @@ fst_stringdist_single_col_matches <- function(v1, v2, max_dist, method,
 #' distance is not computed for that pair. For low-duplication workloads, the
 #' planner can also evaluate larger dense blocks of unique values to reduce
 #' orchestration overhead while preserving the same matching semantics.
+#' When `max_dist = 0` and no additional metric arguments are supplied,
+#' methods whose zero distance implies string equality use an exact keyed join
+#' instead of evaluating the full candidate distance set.
 #'
 #' @return A joined table that preserves the container class of \code{x}:
 #'   \code{data.table} inputs return \code{data.table}, tibble inputs return
@@ -312,30 +395,61 @@ fst_stringdist_single_col_matches <- function(v1, v2, max_dist, method,
 #' }
 #'
 #' @export
-fuzzystring_join <- function(x, y, by = NULL, max_dist = 2,
-                            method = c("osa", "lv", "dl", "hamming", "lcs", "qgram",
-                                       "cosine", "jaccard", "jw", "soundex"),
-                            mode = "inner",
-                            ignore_case = FALSE,
-                            distance_col = NULL,
-                            ...) {
+fuzzystring_join <- function(
+  x,
+  y,
+  by = NULL,
+  max_dist = 2,
+  method = c(
+    "osa",
+    "lv",
+    "dl",
+    "hamming",
+    "lcs",
+    "qgram",
+    "cosine",
+    "jaccard",
+    "jw",
+    "soundex"
+  ),
+  mode = "inner",
+  ignore_case = FALSE,
+  distance_col = NULL,
+  ...
+) {
   method <- match.arg(method)
 
   if (method == "soundex") {
     max_dist <- 0.5
   }
 
-  if (!is.numeric(max_dist) || length(max_dist) != 1) {
-    stop("max_dist must be a single numeric value", call. = FALSE)
-  }
-  if (max_dist < 0) {
-    stop("max_dist must be non-negative", call. = FALSE)
-  }
-
-  by2 <- fst_common_by(by, x, y)
+  by2 <- fst_validate_join_inputs(
+    x,
+    y,
+    by,
+    max_dist,
+    ignore_case,
+    distance_col
+  )
   dot_args <- list(...)
 
-  if (length(by2$x) == 1L) {
+  if (fst_can_use_exact_join(method, max_dist, dot_args)) {
+    index_match_fun <- function(d1, d2) {
+      fst_exact_match_indices(
+        d1,
+        d2,
+        ignore_case = ignore_case,
+        distance_col = distance_col
+      )
+    }
+    out <- fuzzystring_join_backend(
+      x,
+      y,
+      multi_by = by2,
+      mode = mode,
+      index_match_fun = index_match_fun
+    )
+  } else if (length(by2$x) == 1L) {
     index_match_fun <- function(d1, d2) {
       fst_stringdist_single_col_matches(
         d1[[1]],
@@ -401,7 +515,13 @@ fuzzystring_join <- function(x, y, by = NULL, max_dist = 2,
       ret
     }
 
-    out <- fuzzystring_join_backend(x, y, by = by2, mode = mode, match_fun = match_fun)
+    out <- fuzzystring_join_backend(
+      x,
+      y,
+      by = by2,
+      mode = mode,
+      match_fun = match_fun
+    )
   }
 
   fst_ensure_distance_col(out, distance_col, mode)
@@ -410,36 +530,77 @@ fuzzystring_join <- function(x, y, by = NULL, max_dist = 2,
 #' @rdname fuzzystring_join
 #' @export
 fuzzystring_inner_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
-  fuzzystring_join(x, y, by = by, mode = "inner", distance_col = distance_col, ...)
+  fuzzystring_join(
+    x,
+    y,
+    by = by,
+    mode = "inner",
+    distance_col = distance_col,
+    ...
+  )
 }
 
 #' @rdname fuzzystring_join
 #' @export
 fuzzystring_left_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
-  fuzzystring_join(x, y, by = by, mode = "left", distance_col = distance_col, ...)
+  fuzzystring_join(
+    x,
+    y,
+    by = by,
+    mode = "left",
+    distance_col = distance_col,
+    ...
+  )
 }
 
 #' @rdname fuzzystring_join
 #' @export
 fuzzystring_right_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
-  fuzzystring_join(x, y, by = by, mode = "right", distance_col = distance_col, ...)
+  fuzzystring_join(
+    x,
+    y,
+    by = by,
+    mode = "right",
+    distance_col = distance_col,
+    ...
+  )
 }
 
 #' @rdname fuzzystring_join
 #' @export
 fuzzystring_full_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
-  fuzzystring_join(x, y, by = by, mode = "full", distance_col = distance_col, ...)
+  fuzzystring_join(
+    x,
+    y,
+    by = by,
+    mode = "full",
+    distance_col = distance_col,
+    ...
+  )
 }
 
 #' @rdname fuzzystring_join
 #' @export
 fuzzystring_semi_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
-  fuzzystring_join(x, y, by = by, mode = "semi", distance_col = distance_col, ...)
+  fuzzystring_join(
+    x,
+    y,
+    by = by,
+    mode = "semi",
+    distance_col = distance_col,
+    ...
+  )
 }
 
 #' @rdname fuzzystring_join
 #' @export
 fuzzystring_anti_join <- function(x, y, by = NULL, distance_col = NULL, ...) {
-  fuzzystring_join(x, y, by = by, mode = "anti", distance_col = distance_col, ...)
+  fuzzystring_join(
+    x,
+    y,
+    by = by,
+    mode = "anti",
+    distance_col = distance_col,
+    ...
+  )
 }
-

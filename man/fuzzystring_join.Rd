@@ -81,6 +81,8 @@ When \code{by} maps multiple columns, the same \code{method},
 \code{max_dist}, and any additional \code{stringdist} arguments are applied
 independently to each mapped column, and a row pair is kept only when all
 mapped columns satisfy the distance threshold.
+When \code{distance_col} is requested for a multi-column join, it contains the
+maximum distance across the mapped columns for each matched row pair.
 
 For single-column joins, fuzzystring uses adaptive candidate planning before
 calling \code{stringdist::stringdist()}. For Levenshtein-like methods
@@ -89,6 +91,9 @@ calling \code{stringdist::stringdist()}. For Levenshtein-like methods
 distance is not computed for that pair. For low-duplication workloads, the
 planner can also evaluate larger dense blocks of unique values to reduce
 orchestration overhead while preserving the same matching semantics.
+When \code{max_dist = 0} and no additional metric arguments are supplied,
+methods whose zero distance implies string equality use an exact keyed join
+instead of evaluating the full candidate distance set.
 }
 \examples{
 \donttest{

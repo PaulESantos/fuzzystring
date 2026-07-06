@@ -49,17 +49,27 @@
 #' @importFrom stats as.formula
 #' @importFrom data.table as.data.table is.data.table copy setorder setnames CJ rbindlist melt dcast .I .N :=
 #' @keywords internal
-fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
-                              multi_by = NULL, multi_match_fun = NULL,
-                              index_match_fun = NULL, mode = "inner", ...) {
-
+fuzzystring_join_backend <- function(
+  x,
+  y,
+  by = NULL,
+  match_fun = NULL,
+  multi_by = NULL,
+  multi_match_fun = NULL,
+  index_match_fun = NULL,
+  mode = "inner",
+  ...
+) {
   mode <- match.arg(mode, c("inner", "left", "right", "full", "semi", "anti"))
 
   non_nulls <- (!is.null(multi_match_fun)) +
     (!is.null(match_fun)) +
     (!is.null(index_match_fun))
   if (sum(non_nulls) != 1) {
-    stop("Must give exactly one of match_fun, multi_match_fun, and index_match_fun", call. = FALSE)
+    stop(
+      "Must give exactly one of match_fun, multi_match_fun, and index_match_fun",
+      call. = FALSE
+    )
   }
 
   x_is_dt <- data.table::is.data.table(x)
@@ -99,9 +109,17 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
 
   as_mapper_dt <- function(f) {
     if (inherits(f, "formula")) {
-      stop("Formula notation (~) not supported in this data.table version yet. Pass a function.", call. = FALSE)
+      stop(
+        "Formula notation (~) not supported in this data.table version yet. Pass a function.",
+        call. = FALSE
+      )
     }
-    if (!is.function(f)) stop("match_fun / multi_match_fun / index_match_fun must be a function.", call. = FALSE)
+    if (!is.function(f)) {
+      stop(
+        "match_fun / multi_match_fun / index_match_fun must be a function.",
+        call. = FALSE
+      )
+    }
     f
   }
 
@@ -138,8 +156,9 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
     x_len <- lengths(x_lists)
     y_len <- lengths(y_lists)
 
-    rep_counts <- x_len * y_len  # Cartesian product size per group
-    total_size <- sum(rep_counts)
+    sizes <- fst_checked_cartesian_sizes(x_len, y_len)
+    rep_counts <- sizes$rep_counts
+    total_size <- sizes$total_size
 
     if (total_size == 0L) {
       return(list(x = integer(0), y = integer(0), x_len = x_len, y_len = y_len))
@@ -177,9 +196,13 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
     #   x_len, y_len: group sizes used to compute rep_counts = x_len * y_len
     #
     # Returns: expanded extra_dt with rows replicated according to Cartesian product sizes
-    if (is.null(extra_dt)) return(NULL)
+    if (is.null(extra_dt)) {
+      return(NULL)
+    }
     rep_counts <- x_len * y_len
-    if (sum(rep_counts) == 0L) return(extra_dt[0])
+    if (sum(rep_counts) == 0L) {
+      return(extra_dt[0])
+    }
     idx <- rep.int(w, times = rep_counts)
     extra_dt[idx]
   }
@@ -187,7 +210,12 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
   # --- C++ binding function --------------------------------------------------
   # Uses the compiled C++ function instead of R implementation
 
-  bind_by_rowid_cpp_wrapper <- function(x_dt2, y_dt2, matches_dt, overlap = character(0)) {
+  bind_by_rowid_cpp_wrapper <- function(
+    x_dt2,
+    y_dt2,
+    matches_dt,
+    overlap = character(0)
+  ) {
     ret <- bind_by_rowid_cpp_matches(x_dt2, y_dt2, matches_dt, overlap)
     if (!data.table::is.data.table(ret)) {
       ret <- data.table::as.data.table(ret)
@@ -212,7 +240,10 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
       mf_list <- rep(mf_list, length(by2$x))
     }
     if (length(mf_list) != length(by2$x)) {
-      stop("Length of match_fun not equal to columns specified in 'by'.", call. = FALSE)
+      stop(
+        "Length of match_fun not equal to columns specified in 'by'.",
+        call. = FALSE
+      )
     }
 
     if (length(by2$x) > 1L) {
@@ -236,11 +267,18 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
       extra_dt <- NULL
       if (data.table::is.data.table(m) || is.data.frame(m)) {
         m_dt <- data.table::as.data.table(m)
-        if (ncol(m_dt) > 1L) extra_dt <- m_dt[, -1, with = FALSE]
+        if (ncol(m_dt) > 1L) {
+          extra_dt <- m_dt[, -1, with = FALSE]
+        }
         m <- m_dt[[1]]
       }
 
-      if (!is.logical(m)) stop("match_fun must return logical or a data.frame/data.table whose first column is logical.", call. = FALSE)
+      if (!is.logical(m)) {
+        stop(
+          "match_fun must return logical or a data.frame/data.table whose first column is logical.",
+          call. = FALSE
+        )
+      }
 
       w <- which(m) - 1L
       if (length(w) == 0L) {
@@ -256,12 +294,13 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
         matches <- data.table::data.table(x = expd$x, y = expd$y)
 
         if (!is.null(extra_dt)) {
-          extra_rep <- replicate_extras(extra_dt, w + 1L, expd$x_len, expd$y_len)
+          extra_rep <- replicate_extras(
+            extra_dt,
+            w + 1L,
+            expd$x_len,
+            expd$y_len
+          )
           matches <- data.table::as.data.table(cbind(matches, extra_rep))
-          extra_cols <- setdiff(names(matches), c("x", "y"))
-          if (length(extra_cols) > 0L) {
-            data.table::setnames(matches, extra_cols, xcol)
-          }
         }
       }
 
@@ -280,11 +319,18 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
           extra_dt <- NULL
           if (data.table::is.data.table(m) || is.data.frame(m)) {
             m_dt <- data.table::as.data.table(m)
-            if (ncol(m_dt) > 1L) extra_dt <- m_dt[, -1, with = FALSE]
+            if (ncol(m_dt) > 1L) {
+              extra_dt <- m_dt[, -1, with = FALSE]
+            }
             m <- m_dt[[1]]
           }
 
-          if (!is.logical(m)) stop("match_fun must return logical or a data.frame/data.table whose first column is logical.", call. = FALSE)
+          if (!is.logical(m)) {
+            stop(
+              "match_fun must return logical or a data.frame/data.table whose first column is logical.",
+              call. = FALSE
+            )
+          }
 
           keep <- which(m)
           if (length(keep) == 0L) {
@@ -296,13 +342,36 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
 
           if (!is.null(extra_dt)) {
             extra_rep <- extra_dt[keep]
-            extra_cols <- names(extra_rep)
-            data.table::setnames(extra_rep, extra_cols, xcol)
-            matches <- data.table::as.data.table(cbind(matches, extra_rep))
+            shared_extra <- intersect(
+              setdiff(names(matches), c("x", "y")),
+              names(extra_rep)
+            )
+            for (extra_col in shared_extra) {
+              if (
+                !is.numeric(matches[[extra_col]]) ||
+                  !is.numeric(extra_rep[[extra_col]])
+              ) {
+                stop(
+                  "Repeated match metadata columns must be numeric.",
+                  call. = FALSE
+                )
+              }
+              data.table::set(
+                matches,
+                j = extra_col,
+                value = pmax(matches[[extra_col]], extra_rep[[extra_col]])
+              )
+            }
+            new_extra <- setdiff(names(extra_rep), shared_extra)
+            if (length(new_extra)) {
+              matches <- data.table::as.data.table(cbind(
+                matches,
+                extra_rep[, new_extra, with = FALSE]
+              ))
+            }
           }
         }
       }
-
     } else {
       # Single-column match: remains exactly as original (fastest path for 1 col)
       xcol <- by2$x[1L]
@@ -324,11 +393,18 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
       extra_dt <- NULL
       if (data.table::is.data.table(m) || is.data.frame(m)) {
         m_dt <- data.table::as.data.table(m)
-        if (ncol(m_dt) > 1L) extra_dt <- m_dt[, -1, with = FALSE]
+        if (ncol(m_dt) > 1L) {
+          extra_dt <- m_dt[, -1, with = FALSE]
+        }
         m <- m_dt[[1]]
       }
 
-      if (!is.logical(m)) stop("match_fun must return logical or a data.frame/data.table whose first column is logical.", call. = FALSE)
+      if (!is.logical(m)) {
+        stop(
+          "match_fun must return logical or a data.frame/data.table whose first column is logical.",
+          call. = FALSE
+        )
+      }
 
       w <- which(m) - 1L
       if (length(w) == 0L) {
@@ -344,12 +420,16 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
         matches <- data.table::data.table(x = expd$x, y = expd$y)
 
         if (!is.null(extra_dt)) {
-          extra_rep <- replicate_extras(extra_dt, w + 1L, expd$x_len, expd$y_len)
+          extra_rep <- replicate_extras(
+            extra_dt,
+            w + 1L,
+            expd$x_len,
+            expd$y_len
+          )
           matches <- data.table::as.data.table(cbind(matches, extra_rep))
         }
       }
     }
-
   } else if (!is.null(multi_match_fun)) {
     mmf <- as_mapper_dt(multi_match_fun)
     by2 <- fst_common_by(multi_by, x_dt, y_dt)
@@ -375,10 +455,17 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
       extra_dt <- NULL
       if (data.table::is.data.table(m) || is.data.frame(m)) {
         m_dt <- data.table::as.data.table(m)
-        if (ncol(m_dt) > 1L) extra_dt <- m_dt[, -1, with = FALSE]
+        if (ncol(m_dt) > 1L) {
+          extra_dt <- m_dt[, -1, with = FALSE]
+        }
         m <- m_dt[[1]]
       }
-      if (!is.logical(m)) stop("multi_match_fun must return logical or a data.frame/data.table whose first column is logical.", call. = FALSE)
+      if (!is.logical(m)) {
+        stop(
+          "multi_match_fun must return logical or a data.frame/data.table whose first column is logical.",
+          call. = FALSE
+        )
+      }
 
       if (sum(m) == 0L) {
         matches <- data.table::data.table(x = numeric(0), y = numeric(0))
@@ -396,7 +483,6 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
         }
       }
     }
-
   } else {
     imf <- as_mapper_dt(index_match_fun)
     by2 <- fst_common_by(multi_by, x_dt, y_dt)
@@ -405,14 +491,23 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
     d2 <- y_dt[, by2$y, with = FALSE]
     matches <- imf(d1, d2)
 
-    if (!data.table::is.data.table(matches)) matches <- data.table::as.data.table(matches)
+    if (!data.table::is.data.table(matches)) {
+      matches <- data.table::as.data.table(matches)
+    }
     if (!all(c("x", "y") %in% names(matches))) {
-      stop("index_match_fun must return a table with columns named 'x' and 'y' (1-based row indices).", call. = FALSE)
+      stop(
+        "index_match_fun must return a table with columns named 'x' and 'y' (1-based row indices).",
+        call. = FALSE
+      )
     }
   }
 
-  if (!data.table::is.data.table(matches)) matches <- data.table::as.data.table(matches)
-  if ("i" %in% names(matches)) matches[, i := NULL]
+  if (!data.table::is.data.table(matches)) {
+    matches <- data.table::as.data.table(matches)
+  }
+  if ("i" %in% names(matches)) {
+    matches[, i := NULL]
+  }
 
   # --- modos semi / anti -----------------------------------------------------
 
@@ -463,10 +558,18 @@ fuzzystring_join_backend <- function(x, y, by = NULL, match_fun = NULL,
     miss_y <- setdiff(seq_len(nrow(y_dt)), has_y)
 
     if (length(miss_x)) {
-      matches <- data.table::rbindlist(list(matches, data.table::data.table(x = miss_x, y = NA_integer_)), use.names = TRUE, fill = TRUE)
+      matches <- data.table::rbindlist(
+        list(matches, data.table::data.table(x = miss_x, y = NA_integer_)),
+        use.names = TRUE,
+        fill = TRUE
+      )
     }
     if (length(miss_y)) {
-      matches <- data.table::rbindlist(list(matches, data.table::data.table(x = NA_integer_, y = miss_y)), use.names = TRUE, fill = TRUE)
+      matches <- data.table::rbindlist(
+        list(matches, data.table::data.table(x = NA_integer_, y = miss_y)),
+        use.names = TRUE,
+        fill = TRUE
+      )
     }
     data.table::setorder(matches, x, y)
   }

@@ -1,0 +1,13 @@
+The `misspellings` dataset is derived from Wikipedia's "Lists of common
+misspellings/For machines":
+
+https://en.wikipedia.org/wiki/Wikipedia:Lists_of_common_misspellings/For_machines
+
+The source material is licensed under the Creative Commons
+Attribution-ShareAlike license (CC BY-SA). The packaged copy removes entries
+with selected non-ASCII characters and reshapes entries with multiple correct
+spellings. Attribution belongs to the Wikipedia contributors; see the page
+history at the source URL.
+
+The package code is licensed separately under the MIT license as stated in
+DESCRIPTION and LICENSE.

@@ -13,6 +13,106 @@
 #' @noRd
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
+fst_checked_cartesian_sizes <- function(x_len, y_len) {
+  rep_counts <- as.double(x_len) * as.double(y_len)
+  total_size <- sum(rep_counts)
+
+  if (!is.finite(total_size) || total_size > .Machine$integer.max) {
+    stop(
+      "The join result is too large to represent safely.",
+      call. = FALSE
+    )
+  }
+
+  list(
+    rep_counts = as.integer(rep_counts),
+    total_size = as.integer(total_size)
+  )
+}
+
+fst_validate_join_inputs <- function(
+  x,
+  y,
+  by,
+  max_dist,
+  ignore_case,
+  distance_col
+) {
+  if (!is.data.frame(x) || !is.data.frame(y)) {
+    stop("`x` and `y` must be data frames.", call. = FALSE)
+  }
+  if (
+    !is.numeric(max_dist) ||
+      length(max_dist) != 1L ||
+      is.na(max_dist) ||
+      !is.finite(max_dist) ||
+      max_dist < 0
+  ) {
+    stop(
+      "`max_dist` must be a single finite non-negative number.",
+      call. = FALSE
+    )
+  }
+  if (
+    !is.logical(ignore_case) || length(ignore_case) != 1L || is.na(ignore_case)
+  ) {
+    stop("`ignore_case` must be `TRUE` or `FALSE`.", call. = FALSE)
+  }
+  if (!is.null(distance_col)) {
+    valid_distance_col <- is.character(distance_col) &&
+      length(distance_col) == 1L &&
+      !is.na(distance_col) &&
+      nzchar(distance_col)
+    if (!valid_distance_col) {
+      stop(
+        "`distance_col` must be `NULL` or one non-empty string.",
+        call. = FALSE
+      )
+    }
+    unavailable <- c("x", "y", "i", names(x), names(y))
+    if (distance_col %in% unavailable) {
+      stop(
+        "`distance_col` must not collide with input or internal columns.",
+        call. = FALSE
+      )
+    }
+  }
+
+  by2 <- fst_common_by(by, x, y)
+  valid_by <- is.list(by2) &&
+    identical(sort(names(by2)), c("x", "y")) &&
+    is.character(by2$x) &&
+    is.character(by2$y) &&
+    length(by2$x) > 0L &&
+    length(by2$x) == length(by2$y) &&
+    !anyNA(by2$x) &&
+    !anyNA(by2$y) &&
+    all(nzchar(by2$x)) &&
+    all(nzchar(by2$y))
+  if (!valid_by) {
+    stop("`by` must specify at least one valid pair of columns.", call. = FALSE)
+  }
+  missing_x <- setdiff(by2$x, names(x))
+  missing_y <- setdiff(by2$y, names(y))
+  if (length(missing_x) || length(missing_y)) {
+    missing <- character()
+    if (length(missing_x)) {
+      missing <- c(missing, paste0("x$", missing_x))
+    }
+    if (length(missing_y)) {
+      missing <- c(missing, paste0("y$", missing_y))
+    }
+    stop(
+      "Join columns not found: ",
+      paste(missing, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+
+  by2
+}
+
 
 #' Normalize join columns specification (data.table backend) (internal)
 #'
@@ -55,7 +155,9 @@
 #' @keywords internal
 #' @noRd
 fst_common_by <- function(by = NULL, x, y) {
-  if (is.list(by)) return(by)
+  if (is.list(by)) {
+    return(by)
+  }
 
   if (!is.null(by)) {
     x_names <- names(by) %||% by

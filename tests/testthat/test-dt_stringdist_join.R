@@ -18,24 +18,34 @@ test_that("stringdist_join / variants (data.table backend)", {
   included <- c("Ideal", "Premium")
   notin <- c("Fair", "Good", "Very Good")
 
-  d3 <- data.table::rbindlist(list(d2, data.table::data.table(cut2 = "NewType", type = 4L)),
-                              use.names = TRUE, fill = TRUE)
+  d3 <- data.table::rbindlist(
+    list(d2, data.table::data.table(cut2 = "NewType", type = 4L)),
+    use.names = TRUE,
+    fill = TRUE
+  )
 
   # ------------------------------------------------------------------
   # INNER join (multiples + distance column)
   # ------------------------------------------------------------------
-  j <- fuzzystring_inner_join(diamonds, d,
-                                by = c(cut = "cut2"),
-                                distance_col = "distance")
+  j <- fuzzystring_inner_join(
+    diamonds,
+    d,
+    by = c(cut = "cut2"),
+    distance_col = "distance"
+  )
 
   # count(cut, cut2) + arrange(cut)
   result <- data.table::as.data.table(j)[, .N, by = .(cut, cut2)]
   data.table::setorder(result, cut)
 
-  expect_equal(as.character(result$cut),
-               c("Fair", "Very Good", "Premium", "Premium", "Ideal"))
-  expect_equal(result$cut2,
-               c("Faiir", "VeryGood", "Premiums", "Premiom", "Idea"))
+  expect_equal(
+    as.character(result$cut),
+    c("Fair", "Very Good", "Premium", "Premium", "Ideal")
+  )
+  expect_equal(
+    result$cut2,
+    c("Faiir", "VeryGood", "Premiums", "Premiom", "Idea")
+  )
 
   # Premium and Very Good each match two entries in d (Premiom/Premiums, VeryGood twice)
   expect_equal(sum(j$cut == "Premium"), sum(diamonds$cut == "Premium") * 2L)
@@ -61,10 +71,14 @@ test_that("stringdist_join / variants (data.table backend)", {
   expect_true(all(is.na(result_l$cut2[result_l$cut %in% notin])))
   expect_equal(sum(result_l$cut %in% notin), sum(diamonds$cut %in% notin))
 
-  expect_equal(sum(result_l$cut2 == "Premiom", na.rm = TRUE),
-               sum(diamonds$cut == "Premium"))
-  expect_equal(sum(result_l$cut2 == "Premiom", na.rm = TRUE),
-               sum(result_l$cut2 == "Premiums", na.rm = TRUE))
+  expect_equal(
+    sum(result_l$cut2 == "Premiom", na.rm = TRUE),
+    sum(diamonds$cut == "Premium")
+  )
+  expect_equal(
+    sum(result_l$cut2 == "Premiom", na.rm = TRUE),
+    sum(result_l$cut2 == "Premiums", na.rm = TRUE)
+  )
 
   # ------------------------------------------------------------------
   # RIGHT join
@@ -75,10 +89,14 @@ test_that("stringdist_join / variants (data.table backend)", {
   expect_equal(sum(is.na(result_r$cut)), 1L)
   expect_true(all(is.na(result_r$cut[result_r$cut2 == "NewType"])))
 
-  expect_equal(sum(result_r$cut2 == "Premiom", na.rm = TRUE),
-               sum(diamonds$cut == "Premium"))
-  expect_equal(sum(result_r$cut2 == "Premiom", na.rm = TRUE),
-               sum(result_r$cut2 == "Premiums", na.rm = TRUE))
+  expect_equal(
+    sum(result_r$cut2 == "Premiom", na.rm = TRUE),
+    sum(diamonds$cut == "Premium")
+  )
+  expect_equal(
+    sum(result_r$cut2 == "Premiom", na.rm = TRUE),
+    sum(result_r$cut2 == "Premiums", na.rm = TRUE)
+  )
 
   # ------------------------------------------------------------------
   # FULL join
@@ -92,10 +110,14 @@ test_that("stringdist_join / variants (data.table backend)", {
   expect_true(all(is.na(result_f$cut2[result_f$cut %in% notin])))
   expect_equal(sum(result_f$cut %in% notin), sum(diamonds$cut %in% notin))
 
-  expect_equal(sum(result_f$cut2 == "Premiom", na.rm = TRUE),
-               sum(diamonds$cut == "Premium"))
-  expect_equal(sum(result_f$cut2 == "Premiom", na.rm = TRUE),
-               sum(result_f$cut2 == "Premiums", na.rm = TRUE))
+  expect_equal(
+    sum(result_f$cut2 == "Premiom", na.rm = TRUE),
+    sum(diamonds$cut == "Premium")
+  )
+  expect_equal(
+    sum(result_f$cut2 == "Premiom", na.rm = TRUE),
+    sum(result_f$cut2 == "Premiums", na.rm = TRUE)
+  )
 
   # ------------------------------------------------------------------
   # SEMI join
@@ -118,7 +140,14 @@ test_that("stringdist_join / variants (data.table backend)", {
   # No matches cases (including overlapping column names)
   # ------------------------------------------------------------------
   d_nomatch <- data.table::data.table(
-    cut2 = c("Ideolll", "Premiumsss", "Premiomzzz", "VeryVeryGood", "VeryVeryGood", "FaiirsFair"),
+    cut2 = c(
+      "Ideolll",
+      "Premiumsss",
+      "Premiomzzz",
+      "VeryVeryGood",
+      "VeryVeryGood",
+      "FaiirsFair"
+    ),
     type = 1:6
   )
 
@@ -165,7 +194,8 @@ test_that("stringdist_join / variants (data.table backend)", {
   d_lowercase[, cut2 := tolower(cut2)]
 
   j_ic_0 <- fuzzystring_inner_join(
-    diamonds, d_lowercase,
+    diamonds,
+    d_lowercase,
     by = c(cut = "cut2"),
     distance_col = "distance",
     max_dist = 1
@@ -173,7 +203,8 @@ test_that("stringdist_join / variants (data.table backend)", {
   expect_equal(nrow(j_ic_0), 0L)
 
   j_ic <- fuzzystring_inner_join(
-    diamonds, d_lowercase,
+    diamonds,
+    d_lowercase,
     by = c(cut = "cut2"),
     distance_col = "distance",
     ignore_case = TRUE,
@@ -187,7 +218,8 @@ test_that("stringdist_join / variants (data.table backend)", {
   # soundex
   # ------------------------------------------------------------------
   j_sdx <- fuzzystring_inner_join(
-    diamonds, d,
+    diamonds,
+    d,
     by = c(cut = "cut2"),
     distance_col = "distance",
     method = "soundex"
@@ -215,20 +247,34 @@ test_that("stringdist_join / variants (data.table backend)", {
   # ------------------------------------------------------------------
   # Return type: data.frame in -> data.frame out
   # ------------------------------------------------------------------
-  result_df <- fuzzystring_inner_join(as.data.frame(diamonds), d, by = c(cut = "cut2"))
+  result_df <- fuzzystring_inner_join(
+    as.data.frame(diamonds),
+    d,
+    by = c(cut = "cut2")
+  )
   expect_s3_class(result_df, "data.frame")
   expect_false(inherits(result_df, "tbl_df"))
 
-  result_df2 <- fuzzystring_inner_join(as.data.frame(diamonds), as.data.frame(d), by = c(cut = "cut2"))
+  result_df2 <- fuzzystring_inner_join(
+    as.data.frame(diamonds),
+    as.data.frame(d),
+    by = c(cut = "cut2")
+  )
   expect_s3_class(result_df2, "data.frame")
   expect_false(inherits(result_df2, "tbl_df"))
 
   # ------------------------------------------------------------------
   # One-column data.frames (regression)
   # ------------------------------------------------------------------
-  onecol <- data.frame(cut2 = c("Idea", "Premiums", "Premiom", "VeryGood", "VeryGood", "Faiir"))
+  onecol <- data.frame(
+    cut2 = c("Idea", "Premiums", "Premiom", "VeryGood", "VeryGood", "Faiir")
+  )
   diamonds_df <- as.data.frame(diamonds)
-  res_onecol <- fuzzystring_inner_join(diamonds_df, onecol, by = c(cut = "cut2"))
+  res_onecol <- fuzzystring_inner_join(
+    diamonds_df,
+    onecol,
+    by = c(cut = "cut2")
+  )
   expect_s3_class(res_onecol, "data.frame")
   expect_true("cut2" %in% names(res_onecol))
   expect_gt(nrow(res_onecol), 0L)
@@ -236,8 +282,7 @@ test_that("stringdist_join / variants (data.table backend)", {
   # ------------------------------------------------------------------
   # No common variables should error
   # ------------------------------------------------------------------
-  expect_error(fuzzystring_inner_join(diamonds, d),
-               "No common variables")
+  expect_error(fuzzystring_inner_join(diamonds, d), "No common variables")
 
   # ------------------------------------------------------------------
   # Distance column existence when no overlaps (outer joins vs semi/anti)
@@ -245,21 +290,45 @@ test_that("stringdist_join / variants (data.table backend)", {
   a <- data.table::data.table(x = c("apple", "banana"))
   b <- data.table::data.table(y = c("orange", "mango"))
 
-  res_left <- fuzzystring_left_join(a, b, by = c(x = "y"), max_dist = 1, distance_col = "distance")
+  res_left <- fuzzystring_left_join(
+    a,
+    b,
+    by = c(x = "y"),
+    max_dist = 1,
+    distance_col = "distance"
+  )
   expect_equal(names(res_left), c("x", "y", "distance"))
   expect_equal(nrow(res_left), 2L)
   expect_true(all(is.na(res_left$y)))
   expect_true(all(is.na(res_left$distance)))
 
-  res_inner <- fuzzystring_inner_join(a, b, by = c(x = "y"), max_dist = 1, distance_col = "distance")
+  res_inner <- fuzzystring_inner_join(
+    a,
+    b,
+    by = c(x = "y"),
+    max_dist = 1,
+    distance_col = "distance"
+  )
   expect_equal(names(res_inner), c("x", "y", "distance"))
   expect_equal(nrow(res_inner), 0L)
 
-  res_semi <- fuzzystring_semi_join(a, b, by = c(x = "y"), max_dist = 1, distance_col = "distance")
+  res_semi <- fuzzystring_semi_join(
+    a,
+    b,
+    by = c(x = "y"),
+    max_dist = 1,
+    distance_col = "distance"
+  )
   expect_equal(names(res_semi), "x")
   expect_equal(nrow(res_semi), 0L)
 
-  res_anti <- fuzzystring_anti_join(a, b, by = c(x = "y"), max_dist = 1, distance_col = "distance")
+  res_anti <- fuzzystring_anti_join(
+    a,
+    b,
+    by = c(x = "y"),
+    max_dist = 1,
+    distance_col = "distance"
+  )
   expect_equal(as.data.frame(a), as.data.frame(res_anti))
 
   # ------------------------------------------------------------------
@@ -286,7 +355,18 @@ test_that("stringdist_join / variants (data.table backend)", {
     distance_col = "distance"
   )
 
-  expect_true(all(c("key.x", "shared.x", "key.y", "shared.y", "when", "label", "distance") %in% names(outer_overlap)))
+  expect_true(all(
+    c(
+      "key.x",
+      "shared.x",
+      "key.y",
+      "shared.y",
+      "when",
+      "label",
+      "distance"
+    ) %in%
+      names(outer_overlap)
+  ))
   expect_s3_class(outer_overlap$when, "Date")
   expect_equal(sum(is.na(outer_overlap$key.x)), 1L)
   expect_equal(sum(is.na(outer_overlap$key.y)), 1L)
@@ -297,7 +377,10 @@ test_that("stringdist_join / variants (data.table backend)", {
   x_typed <- data.table::data.table(
     name = c("alpha", "bravo"),
     when = as.Date(c("2024-01-01", "2024-01-02")),
-    stamp = as.POSIXct(c("2024-01-01 10:00:00", "2024-01-02 11:30:00"), tz = "UTC"),
+    stamp = as.POSIXct(
+      c("2024-01-01 10:00:00", "2024-01-02 11:30:00"),
+      tz = "UTC"
+    ),
     grp = factor(c("a", "b")),
     payload = I(list(list(id = 1L), list(id = 2L)))
   )
@@ -338,8 +421,18 @@ test_that("stringdist_join / variants (data.table backend)", {
   # ------------------------------------------------------------------
   # data.frame inputs return plain data.frames
   # ------------------------------------------------------------------
-  res_semi_df <- fuzzystring_semi_join(as.data.frame(a), as.data.frame(a), by = c(x = "x"), max_dist = 0)
-  res_anti_df <- fuzzystring_anti_join(as.data.frame(a), as.data.frame(b), by = c(x = "y"), max_dist = 1)
+  res_semi_df <- fuzzystring_semi_join(
+    as.data.frame(a),
+    as.data.frame(a),
+    by = c(x = "x"),
+    max_dist = 0
+  )
+  res_anti_df <- fuzzystring_anti_join(
+    as.data.frame(a),
+    as.data.frame(b),
+    by = c(x = "y"),
+    max_dist = 1
+  )
   expect_s3_class(res_semi_df, "data.frame")
   expect_false(data.table::is.data.table(res_semi_df))
   expect_s3_class(res_anti_df, "data.frame")
@@ -404,8 +497,8 @@ test_that("multi-column progressive join works correctly", {
 
   a <- data.table::data.table(
     first = c("John", "Alice", "Bob"),
-    last  = c("Smith", "Smith", "Jones"),
-    age   = c(30, 25, 40)
+    last = c("Smith", "Smith", "Jones"),
+    age = c(30, 25, 40)
   )
   b <- data.table::data.table(
     fname = c("Jon", "Alise", "Bob"),
@@ -415,7 +508,8 @@ test_that("multi-column progressive join works correctly", {
 
   # Inner join on first name and last name
   res <- fuzzystring_inner_join(
-    a, b,
+    a,
+    b,
     by = c(first = "fname", last = "lname"),
     max_dist = 1,
     distance_col = "dist"
@@ -430,10 +524,10 @@ test_that("multi-column progressive join works correctly", {
 
   # Semi join works
   res_semi <- fuzzystring_semi_join(
-    a, b,
+    a,
+    b,
     by = c(first = "fname", last = "lname"),
     max_dist = 1
   )
   expect_equal(nrow(res_semi), 3L)
 })
-

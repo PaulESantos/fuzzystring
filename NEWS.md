@@ -1,5 +1,6 @@
 # fuzzystring 0.0.5
 
+- `fuzzystring_join()` now validates join arguments before planning, prevents distance-column name collisions, reports the maximum component distance for multi-column joins, rejects results that exceed supported index sizes, and uses a keyed exact-match route for safe `max_dist = 0` calls (stability and performance audit).
 - Guard test bootstrap so CRAN pretests do not fail when `testthat` is
   unavailable from `Suggests`.
 - Capitalized `Jaccard` in `DESCRIPTION` to avoid the incoming feasibility note.
