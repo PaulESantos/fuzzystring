@@ -36,7 +36,9 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.5" id="fuzzystring-005">fuzzystring 0.0.5<a class="anchor" aria-label="anchor" href="#fuzzystring-005"></a></h2><p class="text-muted">CRAN release: 2026-03-28</p>
-<ul><li>Guard test bootstrap so CRAN pretests do not fail when <code>testthat</code> is unavailable from <code>Suggests</code>.</li>
+<ul><li>
+<code><a href="../reference/fuzzystring_join.html">fuzzystring_join()</a></code> now validates join arguments before planning, prevents distance-column name collisions, reports the maximum component distance for multi-column joins, rejects results that exceed supported index sizes, and uses a keyed exact-match route for safe <code>max_dist = 0</code> calls (stability and performance audit).</li>
+<li>Guard test bootstrap so CRAN pretests do not fail when <code>testthat</code> is unavailable from <code>Suggests</code>.</li>
 <li>Capitalized <code>Jaccard</code> in <code>DESCRIPTION</code> to avoid the incoming feasibility note.</li>
 </ul></div>
     <div class="section level2">

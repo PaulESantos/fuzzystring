@@ -4,6 +4,12 @@
 
 CRAN release: 2026-03-28
 
+- [`fuzzystring_join()`](https://paulesantos.github.io/fuzzystring/reference/fuzzystring_join.md)
+  now validates join arguments before planning, prevents distance-column
+  name collisions, reports the maximum component distance for
+  multi-column joins, rejects results that exceed supported index sizes,
+  and uses a keyed exact-match route for safe `max_dist = 0` calls
+  (stability and performance audit).
 - Guard test bootstrap so CRAN pretests do not fail when `testthat` is
   unavailable from `Suggests`.
 - Capitalized `Jaccard` in `DESCRIPTION` to avoid the incoming

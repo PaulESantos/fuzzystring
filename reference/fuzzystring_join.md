@@ -97,7 +97,9 @@ Soundex distance is 0 (match) or 1 (no match).
 When `by` maps multiple columns, the same `method`, `max_dist`, and any
 additional `stringdist` arguments are applied independently to each
 mapped column, and a row pair is kept only when all mapped columns
-satisfy the distance threshold.
+satisfy the distance threshold. When `distance_col` is requested for a
+multi-column join, it contains the maximum distance across the mapped
+columns for each matched row pair.
 
 For single-column joins, fuzzystring uses adaptive candidate planning
 before calling
@@ -107,7 +109,10 @@ is applied: if `abs(nchar(v1) - nchar(v2)) > max_dist`, the pair cannot
 match, so distance is not computed for that pair. For low-duplication
 workloads, the planner can also evaluate larger dense blocks of unique
 values to reduce orchestration overhead while preserving the same
-matching semantics.
+matching semantics. When `max_dist = 0` and no additional metric
+arguments are supplied, methods whose zero distance implies string
+equality use an exact keyed join instead of evaluating the full
+candidate distance set.
 
 ## Examples
 

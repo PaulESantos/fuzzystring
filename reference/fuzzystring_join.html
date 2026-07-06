@@ -137,14 +137,19 @@ since Soundex distance is 0 (match) or 1 (no match).</p>
 <p>When <code>by</code> maps multiple columns, the same <code>method</code>,
 <code>max_dist</code>, and any additional <code>stringdist</code> arguments are applied
 independently to each mapped column, and a row pair is kept only when all
-mapped columns satisfy the distance threshold.</p>
+mapped columns satisfy the distance threshold.
+When <code>distance_col</code> is requested for a multi-column join, it contains the
+maximum distance across the mapped columns for each matched row pair.</p>
 <p>For single-column joins, fuzzystring uses adaptive candidate planning before
 calling <code><a href="https://rdrr.io/pkg/stringdist/man/stringdist.html" class="external-link">stringdist::stringdist()</a></code>. For Levenshtein-like methods
 (<code>"osa"</code>, <code>"lv"</code>, <code>"dl"</code>), a fast prefilter is applied: if
 <code>abs(nchar(v1) - nchar(v2)) &gt; max_dist</code>, the pair cannot match, so
 distance is not computed for that pair. For low-duplication workloads, the
 planner can also evaluate larger dense blocks of unique values to reduce
-orchestration overhead while preserving the same matching semantics.</p>
+orchestration overhead while preserving the same matching semantics.
+When <code>max_dist = 0</code> and no additional metric arguments are supplied,
+methods whose zero distance implies string equality use an exact keyed join
+instead of evaluating the full candidate distance set.</p>
     </div>
 
     <div class="section level2">
